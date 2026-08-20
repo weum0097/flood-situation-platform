@@ -1,0 +1,24 @@
+# Java
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Maven
+.mvn/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid
+
+# Database
+*.sql.bak
