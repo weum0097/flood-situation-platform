@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.flood.situation.infrastructure.SituationAssessmentMapper">
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO region_situation_assessment
+      (public_id, region_id, assessment_time, situation_level, active_event_count,
+       affected_population, trapped_population, evacuated_population, vulnerable_population,
+       rule_set_id, rule_version, source_type, input_snapshot, warnings, created_by_client_id)
+    VALUES
+      (#{publicId}, #{regionId}, #{assessmentTime}, #{situationLevel}, #{activeEventCount},
+       #{affectedPopulation}, #{trappedPopulation}, #{evacuatedPopulation},
+       #{vulnerablePopulation}, #{ruleSetId}, #{ruleVersion}, #{sourceType},
+       CAST(#{inputSnapshot} AS JSON), CAST(#{warnings} AS JSON), #{createdByClientId})
+  </insert>
+
+  <insert id="insertEvent">
+    INSERT INTO region_situation_assessment_event
+      (assessment_id, event_id, observation_id, event_level, duration_hours, matched_rule_codes)
+    VALUES
+      (#{assessmentId}, #{eventId}, #{observationId}, #{eventLevel}, #{durationHours},
+       CAST(#{matchedRuleCodes} AS JSON))
+  </insert>
+
+  <sql id="queryConditions">
+    a.region_id = #{regionId}
+    AND a.assessment_time &gt;= #{query.startTime}
+    AND a.assessment_time &lt; #{query.endTime}
+    <if test="query.situationLevel != null">
+      AND a.situation_level = #{query.situationLevel}
+    </if>
+  </sql>
+
+  <select id="countForQuery" resultType="long">
+    SELECT COUNT(*) FROM region_situation_assessment a
+    WHERE <include refid="queryConditions"/>
+  </select>
+
+  <select id="findPageForQuery" resultType="com.example.flood.situation.infrastructure.SituationAssessmentSummaryRow">
+    SELECT a.id, a.public_id, r.region_code, r.region_name, a.assessment_time,
+           a.situation_level, a.active_event_count, a.affected_population,
+           a.trapped_population, a.evacuated_population, a.vulnerable_population,
+           COALESCE((SELECT JSON_ARRAYAGG(e.public_id)
+             FROM region_situation_assessment_event ae
+             JOIN disaster_event e ON e.id = ae.event_id
+             WHERE ae.assessment_id = a.id), JSON_ARRAY()) AS event_ids,
+           a.rule_version, a.warnings
+    FROM region_situation_assessment a
+    JOIN region r ON r.id = a.region_id
+    WHERE <include refid="queryConditions"/>
+    ORDER BY a.assessment_time DESC, a.id DESC
+    LIMIT #{query.size} OFFSET #{query.offset}
+  </select>
+</mapper>

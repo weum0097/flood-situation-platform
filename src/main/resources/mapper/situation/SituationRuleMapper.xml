@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.flood.situation.infrastructure.SituationRuleMapper">
+  <select id="findActiveRuleSets" resultType="com.example.flood.situation.infrastructure.SituationRuleSetRow">
+    SELECT id, version, status, aggregation_strategy, medium_to_high_count,
+           effective_from, effective_to
+    FROM situation_rule_set
+    WHERE status = 'ACTIVE'
+      AND effective_from &lt;= #{assessmentTime}
+      AND (effective_to IS NULL OR #{assessmentTime} &lt; effective_to)
+    ORDER BY effective_from DESC, id DESC
+  </select>
+
+  <select id="findRules" resultType="com.example.flood.situation.infrastructure.SituationRuleRow">
+    SELECT id, rule_set_id, rule_code, event_type, metric_code, comparison_direction,
+           medium_threshold, high_threshold, priority, enabled
+    FROM situation_rule
+    WHERE rule_set_id = #{ruleSetId} AND enabled = 1
+    ORDER BY priority DESC, rule_code ASC
+  </select>
+</mapper>

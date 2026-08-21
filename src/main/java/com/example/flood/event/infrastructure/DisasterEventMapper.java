@@ -46,6 +46,16 @@ public interface DisasterEventMapper {
           r.region_code, r.region_name, e.event_type, e.event_name, e.start_time,
           e.end_time, e.status, e.created_by_client_id, e.created_at, e.updated_at
         FROM disaster_event e JOIN region r ON r.id=e.region_id
+        WHERE e.source_system=#{source} AND e.external_event_id=#{external} FOR UPDATE
+        """)
+    Optional<DisasterEventRow> findByExternalForUpdate(
+        @Param("source") String source, @Param("external") String external);
+
+    @Select("""
+        SELECT e.id, e.public_id, e.external_event_id, e.source_system, e.region_id,
+          r.region_code, r.region_name, e.event_type, e.event_name, e.start_time,
+          e.end_time, e.status, e.created_by_client_id, e.created_at, e.updated_at
+        FROM disaster_event e JOIN region r ON r.id=e.region_id
         WHERE e.public_id=#{publicId}
         """)
     Optional<DisasterEventRow> findByPublicId(@Param("publicId") String publicId);
@@ -57,5 +67,12 @@ public interface DisasterEventMapper {
         """)
     int updateMutable(@Param("id") long id, @Param("eventType") String eventType,
         @Param("eventName") String eventName, @Param("start") Instant start,
+        @Param("end") Instant end, @Param("status") String status);
+
+    @Update("""
+        UPDATE disaster_event SET event_name=#{eventName}, end_time=#{end}, status=#{status}
+        WHERE id=#{id}
+        """)
+    int updateAssessmentMutable(@Param("id") long id, @Param("eventName") String eventName,
         @Param("end") Instant end, @Param("status") String status);
 }

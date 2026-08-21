@@ -696,7 +696,7 @@ Run: `.\mvnw.cmd -Dtest='com.example.flood.event.*Test' test`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit observation and query APIs**
+- [x] **Step 5: Commit observation and query APIs**
 
 ```bash
 git add src/main/java/com/example/flood/event src/main/resources/mapper/event src/test/java/com/example/flood/event
@@ -809,7 +809,7 @@ git commit -m "feat: add flood situation rule engine"
 - Consumes: `EventAssessmentImportPort`, `SituationRuleEngine`, `RegionResolver`, `IdempotencyExecutor`.
 - Produces: `SituationAssessmentResponse assess(SituationAssessmentCommand, ApiPrincipal)` and `PageResponse<SituationAssessmentSummaryResponse> search(SituationAssessmentQuery)`.
 
-- [ ] **Step 1: Write failing orchestration tests**
+- [x] **Step 1: Write failing orchestration tests**
 
 Cover all events matching the root region, stable-field conflict during aggregate import, event create/update counts, duplicate observation counts, only ONGOING events with `observedAt <= assessmentTime`, active rule-set time selection, no active rule set, population sums, overlap warning, medium escalation, immutable rule/input snapshots, and query ordering.
 
@@ -820,13 +820,13 @@ verify(assessmentMapper).insert(argThat(row ->
         && row.getRuleVersion().equals("flood-situation-v1.0")));
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `.\mvnw.cmd -Dtest=RegionSituationAssessmentServiceTest,SituationControllerTest test`
 
 Expected: FAIL because assessment orchestration is absent.
 
-- [ ] **Step 3: Implement the atomic assessment flow**
+- [x] **Step 3: Implement the atomic assessment flow**
 
 `EventAssessmentImportPort` must expose:
 
@@ -846,7 +846,7 @@ For existing events, compare source/external ID, region, event type, and start t
 
 Persist the assessment header first, then one evidence row per participating event. Store canonical `input_snapshot`, matched rule codes, rule version, duration hours to scale 3, and `POSSIBLE_POPULATION_OVERLAP` when required.
 
-- [ ] **Step 4: Implement POST/GET controllers and run tests**
+- [x] **Step 4: Implement POST/GET controllers and run tests**
 
 POST uses operation code `POST:/openapi/v1/region-situation-assessments` and returns 201. GET requires region plus `[startTime,endTime)`, supports page/size, returns saved rows only, and orders by `assessment_time DESC, id DESC`.
 

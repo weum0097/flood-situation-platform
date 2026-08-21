@@ -23,6 +23,9 @@ import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -30,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @ConditionalOnProperty(name = "flood.persistence.enabled", havingValue = "true", matchIfMissing = true)
-public class DefaultEventApplicationService implements EventApplicationService {
+public class DefaultEventApplicationService implements EventApplicationService, EventAssessmentImportPort {
     private final DisasterEventMapper eventMapper;
     private final EventObservationMapper observationMapper;
     private final RegionResolver regionResolver;
@@ -118,6 +121,95 @@ public class DefaultEventApplicationService implements EventApplicationService {
         return observationResponse(observationId, candidate);
     }
 
+    @Override @Transactional
+    public List<ImportedAssessmentEvent> importForAssessment(ResolvedRegion rootRegion,
+        java.time.Instant assessmentTime, List<AssessmentEventImportCommand> commands,
+        ApiPrincipal principal) {
+        List<ImportedAssessmentEvent> imported = new ArrayList<>();
+        for (AssessmentEventImportCommand command : commands) {
+            validator.validateTimes(command.status(), command.startTime(), command.endTime());
+            validator.validateObservation(command.startTime(), command.observation());
+            DisasterEventRow existing = eventMapper.findByExternalForUpdate(
+                command.sourceSystem(), command.externalEventId()).orElse(null);
+            boolean created = existing == null;
+            boolean updated = false;
+            if (created) {
+                String eventId = ids.next("EVT_");
+                try {
+                    eventMapper.insertEvent(eventId, command.externalEventId(), command.sourceSystem(),
+                        rootRegion.id(), command.eventType().name(), command.eventName(),
+                        command.startTime(), command.endTime(), command.status().name(), principal.clientId());
+                } catch (DuplicateKeyException duplicate) {
+                    existing = eventMapper.findByExternalForUpdate(
+                        command.sourceSystem(), command.externalEventId()).orElseThrow(() -> duplicate);
+                    created = false;
+                }
+                if (created) {
+                    existing = eventMapper.findByExternalForUpdate(
+                        command.sourceSystem(), command.externalEventId()).orElseThrow();
+                }
+            }
+            ensureStableFields(existing, rootRegion, command);
+            if (!created) {
+                updated = !Objects.equals(existing.eventName(), command.eventName())
+                    || !Objects.equals(existing.endTime(), command.endTime())
+                    || !existing.status().equals(command.status().name());
+                if (updated) {
+                    eventMapper.updateAssessmentMutable(existing.id(), command.eventName(),
+                        command.endTime(), command.status().name());
+                }
+            }
+            SavedObservation saved = saveImportedObservation(existing.id(), command.observation());
+            imported.add(new ImportedAssessmentEvent(existing.id(), saved.row().id(),
+                existing.publicId(), existing.externalEventId(), saved.row().publicId(),
+                command.eventType(), command.status(), command.startTime(), command.endTime(),
+                command.observation(), created, updated, saved.created()));
+        }
+        return List.copyOf(imported);
+    }
+
+    private SavedObservation saveImportedObservation(long eventId, EventObservation candidate) {
+        var existing = observationMapper.findByNaturalKey(
+            eventId, candidate.externalObservationId(), candidate.observedAt());
+        if (existing.isPresent()) {
+            if (!equivalent(existing.get().observation(), candidate)) {
+                throw new ApiException(ErrorCode.OBSERVATION_CONFLICT,
+                    "Observation natural key already exists with different data");
+            }
+            return new SavedObservation(existing.get(), false);
+        }
+        String publicId = ids.next("OBS_");
+        try {
+            observationMapper.insertObservation(eventId, publicId, candidate);
+        } catch (DuplicateKeyException duplicate) {
+            EventObservationRow concurrent = observationMapper.findByNaturalKey(
+                eventId, candidate.externalObservationId(), candidate.observedAt())
+                .orElseThrow(() -> duplicate);
+            if (!equivalent(concurrent.observation(), candidate)) {
+                throw new ApiException(ErrorCode.OBSERVATION_CONFLICT,
+                    "Observation natural key already exists with different data");
+            }
+            return new SavedObservation(concurrent, false);
+        }
+        EventObservationRow row = observationMapper.findByNaturalKey(
+            eventId, candidate.externalObservationId(), candidate.observedAt())
+            .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR,
+                "Inserted observation could not be reloaded"));
+        return new SavedObservation(row, true);
+    }
+
+    private static void ensureStableFields(DisasterEventRow existing, ResolvedRegion root,
+        AssessmentEventImportCommand command) {
+        if (existing.regionId() != root.id()
+            || !existing.sourceSystem().equals(command.sourceSystem())
+            || !existing.externalEventId().equals(command.externalEventId())
+            || !existing.eventType().equals(command.eventType().name())
+            || !existing.startTime().equals(command.startTime())) {
+            throw new ApiException(ErrorCode.EVENT_CONFLICT,
+                "Existing event has different stable fields");
+        }
+    }
+
     private static ObservationResponse observationResponse(String publicId, EventObservation o) {
         return new ObservationResponse(publicId, utc(o.observedAt()),
             new HazardRequest(o.rainfall24hMm(), o.waterLevelOverWarningM(),
@@ -160,4 +252,6 @@ public class DefaultEventApplicationService implements EventApplicationService {
     private static ApiException conflict() {
         return new ApiException(ErrorCode.EVENT_CONFLICT, "An event with this source identity already exists");
     }
+
+    private record SavedObservation(EventObservationRow row, boolean created) {}
 }
