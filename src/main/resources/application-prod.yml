@@ -1,0 +1,4 @@
+spring:
+  flyway:
+    locations: classpath:sql/mysql
+    baseline-on-migrate: false

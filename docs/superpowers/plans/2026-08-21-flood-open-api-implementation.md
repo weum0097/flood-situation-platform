@@ -100,7 +100,7 @@ README.md
 - Consumes: Existing `sql/mysql/V1__create_flood_scenario_schema.sql` and `V2__remove_all_foreign_keys.sql`.
 - Produces: A bootable Spring context, UTC `Clock`, MyBatis mapper scanning, Flyway V1-V3 locations, and package dependency rules used by every later task.
 
-- [ ] **Step 1: Add the Maven build and failing context test**
+- [x] **Step 1: Add the Maven build and failing context test**
 
 Create a Maven parent using Spring Boot 3.5.16, `java.version` 21, MyBatis-Plus 3.5.17, and springdoc 2.8.17. Include Web, Validation, Security, JDBC, Actuator, Flyway Core/MySQL, MySQL Connector, MyBatis-Plus, springdoc UI, configuration processor, Boot Test, Security Test, ArchUnit JUnit 5, Testcontainers JUnit/MySQL, Surefire, and a Failsafe `integration` profile matching `**/*IT.java`.
 
@@ -140,13 +140,13 @@ class ApplicationContextTest {
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `.\mvnw.cmd -Dtest=ApplicationContextTest test`
 
 Expected: FAIL because `FloodApplication` and configuration do not exist yet.
 
-- [ ] **Step 3: Add the minimal application, UTC clock, MyBatis and profile configuration**
+- [x] **Step 3: Add the minimal application, UTC clock, MyBatis and profile configuration**
 
 Use these exact entry points:
 
@@ -192,7 +192,7 @@ ALTER TABLE idempotency_record
 
 Seed local/test data with a province/city/district chain, one ACTIVE `HIGHEST_EVENT_LEVEL` rule set, GTE rules for water depth and trapped population, one ACTIVE material standard set, and regional plus global standards for `DRINKING_WATER`, `INSTANT_FOOD`, `TENT`, and `MEDICAL_KIT`. Use deterministic codes and versions, and use MySQL `ON DUPLICATE KEY UPDATE` clauses so profile restarts are safe.
 
-- [ ] **Step 4: Add and run the module-boundary test**
+- [x] **Step 4: Add and run the module-boundary test**
 
 ```java
 @AnalyzeClasses(packages = "com.example.flood")
@@ -1194,3 +1194,7 @@ Do not stage the unrelated `test` deletion.
 - **Type consistency:** Region identifiers are external `region_code` strings at API boundaries and numeric IDs internally. Event/assessment/calculation public IDs are strings; database primary keys remain `long`. All time enters as `OffsetDateTime`, becomes `Instant`, and persists as UTC. All quantities use `BigDecimal`.
 - **Transaction consistency:** Six write/calculation controllers enter through one `IdempotencyExecutor` transaction. Event import plus assessment evidence is atomic. Material headers and details are atomic. Audit writes use a separate transaction and cannot change business outcomes.
 - **Placeholder scan:** The plan contains no deferred implementation markers; each task names concrete files, interfaces, tests, commands, outcomes, and commit boundaries.
+
+## Execution Record
+
+- 2026-08-21 baseline: `scripts/mysql/tests/test-wrapper-preconditions.ps1` terminates before its assertions because `$ErrorActionPreference='Stop'` promotes the child PowerShell process's expected stderr to a terminating `NativeCommandError`. Both scripts under test independently return exit code 1 and the expected `FLOOD_DB_ADMIN_PASSWORD is required` message. The user approved recording this pre-existing fixture failure and continuing Java API implementation.
