@@ -722,7 +722,7 @@ git commit -m "feat: add event observations and queries"
 - Consumes: Event type and normalized observation metrics.
 - Produces: `EventSituationResult evaluateEvent(EventSituationInput, List<SituationRuleDefinition>)` and `RegionSituationResult aggregate(List<EventSituationResult>, Integer mediumToHighCount)`.
 
-- [ ] **Step 1: Write failing boundary tests**
+- [x] **Step 1: Write failing boundary tests**
 
 Cover GTE just below/equal/above, LTE just above/equal/below, null metrics not matching, event-type-specific plus global rules, HIGH precedence, MEDIUM fallback, no match LOW, empty region LOW, highest-event aggregation, and medium-count escalation.
 
@@ -733,13 +733,13 @@ assertThat(engine.aggregate(List.of(medium1, medium2), 2).level())
     .isEqualTo(SituationLevel.HIGH);
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `.\mvnw.cmd -Dtest=SituationRuleEngineTest test`
 
 Expected: FAIL because the pure engine does not exist.
 
-- [ ] **Step 3: Implement metric extraction and deterministic evaluation**
+- [x] **Step 3: Implement metric extraction and deterministic evaluation**
 
 Map only these database-supported metric codes:
 
@@ -764,7 +764,7 @@ POWER_OUTAGE_HOUSEHOLDS
 
 Reject an unknown enabled metric as a configuration error. Compare with `BigDecimal.compareTo`, collect matched rule codes in `(priority DESC, ruleCode ASC)` order, and derive the highest matched level.
 
-- [ ] **Step 4: Run rule-engine tests**
+- [x] **Step 4: Run rule-engine tests**
 
 Run: `.\mvnw.cmd -Dtest=SituationRuleEngineTest test`
 
