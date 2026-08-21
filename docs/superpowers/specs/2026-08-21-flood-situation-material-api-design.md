@@ -414,6 +414,7 @@ UNIQUE KEY uk_material_standard
 |---|---|---|---|
 | `id` | BIGINT UNSIGNED | PK, AUTO_INCREMENT | 主键 |
 | `client_id` | BIGINT UNSIGNED | NOT NULL, 逻辑引用 | 调用方 |
+| `operation_code` | VARCHAR(128) | NOT NULL | HTTP 方法与规范化路由模板组成的操作编码 |
 | `idempotency_key` | VARCHAR(128) | NOT NULL | 调用方提供的幂等键 |
 | `request_hash` | BINARY(32) | NOT NULL | 规范化请求 SHA-256 |
 | `resource_type` | VARCHAR(64) | NOT NULL | EVENT/OBSERVATION/ASSESSMENT/MATERIAL |
@@ -423,7 +424,7 @@ UNIQUE KEY uk_material_standard
 | `expires_at` | DATETIME(3) | NOT NULL | 幂等窗口截止时间 |
 | `created_at` | DATETIME(3) | NOT NULL | 创建时间 |
 
-唯一键：`UNIQUE(client_id, idempotency_key)`。相同 Key、不同请求摘要返回 `IDEMPOTENCY_CONFLICT`。
+唯一键：`UNIQUE(client_id, operation_code, idempotency_key)`。同一操作中相同 Key、不同请求摘要返回 `IDEMPOTENCY_CONFLICT`；不同操作允许复用相同 Key。
 
 ### 4.16 `api_audit_log` 接口审计日志
 
@@ -663,13 +664,58 @@ POST /openapi/v1/disaster-events
 - `initialObservation.observedAt >= startTime`。
 - `affectedPopulation` 必须大于或等于 `trappedPopulation`、`evacuatedPopulation`、`vulnerablePopulation` 各自的值；这些群体允许相互重叠，因此不要求其和小于受灾人数。
 
-### 8.2 追加事件观测
+### 8.2 更新灾害事件
+
+```http
+PUT /openapi/v1/disaster-events/{eventId}
+```
+
+权限：`event:write`。路径中的 `eventId` 是系统公共事件编号。成功返回 `200 OK`。
+
+该接口使用完整更新语义，但只开放事件的可变基础字段。`eventId`、`externalEventId`、
+`sourceSystem`、`region` 和创建方不可修改；事件观测必须通过观测接口追加，不能在此接口中覆盖。
+
+请求：
+
+```json
+{
+  "eventType": "RIVER_FLOOD",
+  "eventName": "浦口区河流洪水事件（更新）",
+  "startTime": "2026-08-21T08:00:00+08:00",
+  "endTime": "2026-08-22T16:00:00+08:00",
+  "status": "ENDED"
+}
+```
+
+响应：
+
+```json
+{
+  "eventId": "EVT-20260821-0001",
+  "externalEventId": "EXT-FL-20260821001",
+  "sourceSystem": "emergency-platform",
+  "region": {
+    "regionId": "320111",
+    "regionName": "浦口区"
+  },
+  "eventType": "RIVER_FLOOD",
+  "eventName": "浦口区河流洪水事件（更新）",
+  "startTime": "2026-08-21T08:00:00+08:00",
+  "endTime": "2026-08-22T16:00:00+08:00",
+  "status": "ENDED",
+  "updatedAt": "2026-08-22T16:05:00+08:00"
+}
+```
+
+历史态势评估保存的是计算时快照，更新事件不会触发历史结果重算。
+
+### 8.3 追加事件观测
 
 ```http
 POST /openapi/v1/disaster-events/{eventId}/observations
 ```
 
-权限：`event:write`。成功返回 `201 Created`；幂等重放返回 `200 OK`。
+权限：`event:write`。首次成功和幂等重放均返回已保存的 `201 Created` 状态及同一资源响应。
 
 请求体与 `initialObservation` 相同。路径中的 `eventId` 是系统公共事件编号。
 
@@ -700,7 +746,7 @@ POST /openapi/v1/disaster-events/{eventId}/observations
 }
 ```
 
-### 8.3 查询灾害事件
+### 8.4 查询灾害事件
 
 ```http
 GET /openapi/v1/disaster-events
@@ -754,7 +800,7 @@ AND (event.endTime IS NULL OR event.endTime >= query.startTime)
 }
 ```
 
-### 8.4 导入事件并计算区域态势
+### 8.5 导入事件并计算区域态势
 
 ```http
 POST /openapi/v1/region-situation-assessments
@@ -867,7 +913,7 @@ POST /openapi/v1/region-situation-assessments
 }
 ```
 
-### 8.5 查询区域历史态势
+### 8.6 查询区域历史态势
 
 ```http
 GET /openapi/v1/region-situation-assessments
@@ -923,7 +969,7 @@ AND assessmentTime < endTime
 
 无记录返回 `200 OK` 和空 `items`。
 
-### 8.6 直接参数计算物资
+### 8.7 直接参数计算物资
 
 ```http
 POST /openapi/v1/material-demand-calculations
@@ -941,6 +987,7 @@ POST /openapi/v1/material-demand-calculations
   },
   "situationLevel": "HIGH",
   "supplyDurationHours": 72,
+  "reserveRatio": 0.1,
   "population": {
     "affectedPopulation": 15000,
     "trappedPopulation": 1100,
@@ -990,9 +1037,9 @@ POST /openapi/v1/material-demand-calculations
 
 示例数量仅展示响应结构，生产结果完全取决于业务方激活的物资标准。
 
-`currentInventory` 中同一个 `materialCode` 最多出现一次；库存数量不得为负，单位必须与生效物资标准一致。未传入的物资库存按零处理。
+`reserveRatio` 可选，取值范围为 `[0, 1]`；未传时使用生效物资标准中的储备比例。`currentInventory` 中同一个 `materialCode` 最多出现一次；库存数量不得为负，单位必须与生效物资标准一致。未传入的物资库存按零处理。
 
-### 8.7 根据数据库区域态势计算物资
+### 8.8 根据数据库区域态势计算物资
 
 ```http
 POST /openapi/v1/material-demand-calculations/from-region-data
@@ -1101,7 +1148,7 @@ com.example.flood
 ### 11.1 区域态势导入计算
 
 - 隔离级别使用 MySQL InnoDB 默认 `REPEATABLE READ`。
-- 幂等记录使用唯一键竞争和行锁保证同一调用方的同一 Key 只执行一次。
+- 幂等记录使用唯一键竞争和行锁保证同一调用方、同一 API 操作的同一 Key 只执行一次。
 - 同一外部事件并发导入依赖唯一键 `(source_system, external_event_id)`；捕获重复键后重新读取并校验稳定字段。
 - 事件、观测、评估、评估事件关联必须在同一个事务提交。
 
@@ -1113,8 +1160,8 @@ com.example.flood
 
 ## 12. 验收标准
 
-1. 同一调用方使用相同 `Idempotency-Key` 和相同请求重放时返回同一资源。
-2. 相同幂等键但请求内容不同返回 409。
+1. 同一调用方在同一 API 操作中使用相同 `Idempotency-Key` 和相同请求重放时返回同一资源。
+2. 同一 API 操作中相同幂等键但请求内容不同返回 409；不同 API 操作允许复用相同键。
 3. 同一规则版本和同一输入快照必须产生相同态势结果。
 4. 导入计算失败时事件、观测、评估均不产生部分数据。
 5. 历史态势查询不重新计算，规则升级后历史结果保持不变。
