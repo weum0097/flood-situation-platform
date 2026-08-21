@@ -1044,7 +1044,7 @@ Run: `.\mvnw.cmd -Dtest='com.example.flood.material.*Test' test`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit material APIs**
+- [x] **Step 5: Commit material APIs**
 
 ```bash
 git add src/main/java/com/example/flood/material src/main/java/com/example/flood/situation/application/SituationSnapshotLookup.java src/main/resources/mapper/material src/test/java/com/example/flood/material
