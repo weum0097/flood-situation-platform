@@ -64,6 +64,28 @@ class ApiAuditFilterTest {
         assertThat(response.getContentAsString()).isEqualTo("ok");
     }
 
+    @Test
+    void malformedJsonRequestIsStillAudited() throws Exception {
+        ApiAuditService service = mock(ApiAuditService.class);
+        ApiAuditFilter filter = new ApiAuditFilter(service, objectMapper,
+            new CanonicalRequestHasher(objectMapper));
+        MockHttpServletRequest request = request();
+        request.setContent("{".getBytes(StandardCharsets.UTF_8));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        RequestContextHolder.set(new RequestContext("req_3", 7L, 8L, "client", Set.of(),
+            "127.0.0.1"));
+
+        filter.doFilter(request, response, (req, res) -> {
+            req.getInputStream().readAllBytes();
+            ((jakarta.servlet.http.HttpServletResponse) res).setStatus(400);
+        });
+
+        ArgumentCaptor<ApiAuditRecord> record = ArgumentCaptor.forClass(ApiAuditRecord.class);
+        verify(service).record(record.capture());
+        assertThat(record.getValue().responseStatus()).isEqualTo(400);
+        assertThat(record.getValue().requestHash()).hasSize(32);
+    }
+
     private static MockHttpServletRequest request() {
         MockHttpServletRequest request = new MockHttpServletRequest("POST",
             "/openapi/v1/material-demand-calculations");

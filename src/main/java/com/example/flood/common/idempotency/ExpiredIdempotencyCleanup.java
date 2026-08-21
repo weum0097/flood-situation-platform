@@ -3,6 +3,7 @@ package com.example.flood.common.idempotency;
 import java.time.Clock;
 import org.springframework.stereotype.Component;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
@@ -17,6 +18,7 @@ public class ExpiredIdempotencyCleanup {
     }
 
     @Transactional
+    @Scheduled(fixedDelayString = "${flood.idempotency.cleanup-interval:PT10M}")
     public int deleteBatch() {
         return mapper.deleteExpired(clock.instant(), 500);
     }

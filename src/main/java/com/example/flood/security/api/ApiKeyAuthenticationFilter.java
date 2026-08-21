@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.List;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
-@ConditionalOnBean(ApiKeyAuthenticationService.class)
+@ConditionalOnProperty(name = "flood.persistence.enabled", havingValue = "true", matchIfMissing = true)
 public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
     public static final String API_KEY_HEADER = "X-API-Key";
     private final ApiKeyAuthenticationService authenticationService;

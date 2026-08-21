@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.flood.support.MySqlIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
 class FlywayMigrationIT extends MySqlIntegrationTestBase {
     @Test
@@ -23,5 +25,12 @@ class FlywayMigrationIT extends MySqlIntegrationTestBase {
         assertThat(version).isEqualTo(3);
         assertThat(foreignKeys).isZero();
         assertThat(tables).isEqualTo(15);
+    }
+
+    @Test
+    void applicationReferenceAuditScriptExecutesOnHealthySchema() {
+        new ResourceDatabasePopulator(new ClassPathResource(
+            "sql/mysql/tests/assert_application_references.sql"))
+            .execute(jdbc.getDataSource());
     }
 }

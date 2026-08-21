@@ -9,13 +9,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-@ConditionalOnBean({ApiClientMapper.class, ApiKeyMapper.class})
 @ConditionalOnProperty(prefix = "flood.security.bootstrap", name = "enabled", havingValue = "true")
 public class BootstrapApiKeyInitializer implements ApplicationRunner {
     private static final Pattern KEY_PATTERN = Pattern.compile(

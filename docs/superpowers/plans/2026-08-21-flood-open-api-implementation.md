@@ -1080,7 +1080,7 @@ git commit -m "feat: add material demand calculation apis"
 - Consumes: all eight endpoints and every persisted module.
 - Produces: independent audit writes, generated OpenAPI security documentation, full MySQL verification, and runnable operator instructions.
 
-- [ ] **Step 1: Write failing audit and integration tests**
+- [x] **Step 1: Write failing audit and integration tests**
 
 Use a shared MySQL 8.4 container:
 
@@ -1118,7 +1118,7 @@ Tests must assert:
 
 `assert_application_references.sql` uses `LEFT JOIN ... WHERE parent.id IS NULL` checks for every logical reference column removed by V2 and raises a nonzero assertion result when an orphan exists. It performs no update or delete.
 
-- [ ] **Step 2: Run unit tests and integration tests to expose remaining failures**
+- [x] **Step 2: Run unit tests and integration tests to expose remaining failures**
 
 Run: `.\mvnw.cmd test`
 
@@ -1128,7 +1128,7 @@ Run: `.\mvnw.cmd -Pintegration verify`
 
 Expected: FAIL until audit wiring and any cross-module integration gaps are completed.
 
-- [ ] **Step 3: Implement independent audit persistence and OpenAPI metadata**
+- [x] **Step 3: Implement independent audit persistence and OpenAPI metadata**
 
 `ApiAuditFilter` wraps request and response with Spring content-caching wrappers, records start time, delegates once, copies the response body back, and calls `ApiAuditService.record` in `REQUIRES_NEW`. Parse `errorCode` only from the common JSON envelope. Hash the normalized request body; never store headers containing the API Key. Catch and log audit persistence failure without changing the HTTP response.
 
@@ -1143,7 +1143,7 @@ new SecurityScheme()
 
 Document `X-Request-Id`, `Idempotency-Key`, the common error envelope, all eight paths, and enum values. Do not place a real key in OpenAPI examples.
 
-- [ ] **Step 4: Add runbook documentation and execute the full verification matrix**
+- [x] **Step 4: Add runbook documentation and execute the full verification matrix**
 
 `.env.example` contains only names and clearly fake values. `README.md` must document:
 
@@ -1172,11 +1172,15 @@ Expected: all executable tests pass; `git diff --check` emits no whitespace erro
 
 - [ ] **Step 5: Run a local MySQL smoke test**
 
+Status on 2026-08-21: blocked only for the local instance because `root` requires a
+password that was not provided. The equivalent end-to-end flow and reference audit run
+against an isolated MySQL 8.4 Testcontainers instance in Step 4.
+
 With local environment variables set, start the application against `127.0.0.1:3306/flood_scenario_deduction`, call health, create one event, assess it, and calculate material demand. Confirm `api_audit_log`, assessment, and calculation rows exist and no full API Key appears in logs.
 
 Expected: health is UP; each first write returns success; reusing the same operation/key/body returns the stored resource; all business records are internally consistent.
 
-- [ ] **Step 6: Commit the completed API service**
+- [x] **Step 6: Commit the completed API service**
 
 ```bash
 git add .gitignore .env.example README.md src pom.xml sql/mysql sql/mysql-local
@@ -1198,3 +1202,5 @@ Do not stage the unrelated `test` deletion.
 ## Execution Record
 
 - 2026-08-21 baseline: `scripts/mysql/tests/test-wrapper-preconditions.ps1` terminates before its assertions because `$ErrorActionPreference='Stop'` promotes the child PowerShell process's expected stderr to a terminating `NativeCommandError`. Both scripts under test independently return exit code 1 and the expected `FLOOD_DB_ADMIN_PASSWORD is required` message. The user approved recording this pre-existing fixture failure and continuing Java API implementation.
+- 2026-08-21 final review: fixed request-binding exceptions incorrectly returning 500, malformed-JSON requests skipping audit persistence, missing idempotency TTL scheduling, MySQL timestamp/numeric precision mismatch, and configurable schema-name drift. Added the common OpenAPI 404 response.
+- 2026-08-21 final verification: `clean test` passed 72 tests and `-Pintegration verify` passed 13 MySQL 8.4 integration tests with no failures. `git diff --check` reported no whitespace errors.

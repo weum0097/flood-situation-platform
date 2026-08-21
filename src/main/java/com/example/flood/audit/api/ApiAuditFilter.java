@@ -70,9 +70,14 @@ public class ApiAuditFilter extends OncePerRequestFilter {
     }
 
     private byte[] hash(HttpServletRequest request, byte[] body) throws IOException {
-        JsonNode json = objectMapper.readTree(new String(body, StandardCharsets.UTF_8));
-        return hasher.hash(new IdempotentOperation(
-            request.getMethod() + ":" + request.getRequestURI(), Map.of(), Map.of()), json);
+        IdempotentOperation operation = new IdempotentOperation(
+            request.getMethod() + ":" + request.getRequestURI(), Map.of(), Map.of());
+        String rawBody = new String(body, StandardCharsets.UTF_8);
+        try {
+            return hasher.hash(operation, objectMapper.readTree(rawBody));
+        } catch (IOException malformedJson) {
+            return hasher.hash(operation, rawBody);
+        }
     }
 
     private String errorCode(byte[] body) {

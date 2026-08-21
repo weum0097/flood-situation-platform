@@ -134,6 +134,16 @@ class RegionSituationAssessmentServiceTest {
     }
 
     @Test
+    void rejectsAssessmentTimeBeyondDatabasePrecision() {
+        SituationAssessmentCommand command = new SituationAssessmentCommand(
+            new RegionSelector("320111", null), ASSESSMENT_TIME.plusNanos(1), List.of());
+
+        assertThatThrownBy(() -> service.assess(command, PRINCIPAL))
+            .isInstanceOfSatisfying(ApiException.class,
+                error -> assertThat(error.errorCode()).isEqualTo(ErrorCode.VALIDATION_ERROR));
+    }
+
+    @Test
     void activeRuleProviderUsesHalfOpenEffectiveTimeAndRejectsMissingOrMultipleSets() {
         SituationRuleMapper mapper = mock(SituationRuleMapper.class);
         ActiveSituationRuleProvider provider = new ActiveSituationRuleProvider(mapper);

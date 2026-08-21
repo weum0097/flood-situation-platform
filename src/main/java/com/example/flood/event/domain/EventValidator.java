@@ -14,11 +14,15 @@ public class EventValidator {
             || (status == EventStatus.ONGOING && end != null)
             || (status == EventStatus.ENDED && end == null)
             || (end != null && end.isBefore(start))) invalid("Invalid event time/status combination");
+        if (!hasMillisecondPrecision(start) || (end != null && !hasMillisecondPrecision(end)))
+            invalid("Event times support at most millisecond precision");
     }
 
     public void validateObservation(Instant eventStart, EventObservation value) {
         if (value == null || value.observedAt() == null || value.observedAt().isBefore(eventStart))
             invalid("Observation time must not precede event start");
+        if (!hasMillisecondPrecision(value.observedAt()))
+            invalid("Observation time supports at most millisecond precision");
         if (Stream.of(value.rainfall24hMm(), value.waterLevelOverWarningM(),
                 value.maxWaterDepthM(), value.affectedAreaKm2())
             .filter(java.util.Objects::nonNull).anyMatch(number -> number.signum() < 0))
@@ -37,5 +41,9 @@ public class EventValidator {
 
     private static void invalid(String message) {
         throw new ApiException(ErrorCode.VALIDATION_ERROR, message);
+    }
+
+    private static boolean hasMillisecondPrecision(Instant value) {
+        return value.getNano() % 1_000_000 == 0;
     }
 }

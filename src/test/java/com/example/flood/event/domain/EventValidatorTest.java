@@ -29,6 +29,16 @@ class EventValidatorTest {
         assertInvalid(() -> validator.validateObservation(start, observation));
     }
 
+    @Test void persistedTimesMustNotExceedMillisecondPrecision() {
+        Instant withNanos = start.plusNanos(1);
+        assertInvalid(() -> validator.validateTimes(EventStatus.ONGOING, withNanos, null));
+
+        EventObservation observation = new EventObservation(
+            null, withNanos, null, null, null, null,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        assertInvalid(() -> validator.validateObservation(start, observation));
+    }
+
     private static void assertInvalid(Runnable call) {
         assertThatThrownBy(call::run).isInstanceOfSatisfying(ApiException.class,
             exception -> assertThat(exception.errorCode()).isEqualTo(ErrorCode.VALIDATION_ERROR));

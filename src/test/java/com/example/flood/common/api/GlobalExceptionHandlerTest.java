@@ -2,6 +2,7 @@ package com.example.flood.common.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,6 +20,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -84,10 +88,34 @@ class GlobalExceptionHandlerTest {
         assertThat(response.message()).isEqualTo("region not found");
     }
 
+    @Test
+    void missingHeaderUses400ValidationEnvelope() throws Exception {
+        assertBindingError(mockMvc.perform(get("/test/header")).andReturn());
+    }
+
+    @Test
+    void missingQueryParameterUses400ValidationEnvelope() throws Exception {
+        assertBindingError(mockMvc.perform(get("/test/query")).andReturn());
+    }
+
+    @Test
+    void invalidEnumUses400ValidationEnvelope() throws Exception {
+        assertBindingError(mockMvc.perform(get("/test/enum").param("value", "UNKNOWN"))
+            .andReturn());
+    }
+
+    private void assertBindingError(MvcResult result) throws Exception {
+        assertThat(result.getResponse().getStatus()).isEqualTo(400);
+        JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
+        assertThat(body.get("errorCode").asText()).isEqualTo("MALFORMED_REQUEST");
+    }
+
     record TestRequest(@NotBlank String name) {}
 
     @RestController
     static class TestController {
+        enum TestValue { KNOWN }
+
         @PostMapping("/test/body")
         TestRequest body(@Valid @RequestBody TestRequest request) {
             return request;
@@ -97,5 +125,14 @@ class GlobalExceptionHandlerTest {
         void missing() {
             throw new ApiException(ErrorCode.REGION_NOT_FOUND, "region not found");
         }
+
+        @GetMapping("/test/header")
+        void header(@RequestHeader("X-Required") String value) {}
+
+        @GetMapping("/test/query")
+        void query(@RequestParam("value") String value) {}
+
+        @GetMapping("/test/enum")
+        void enumValue(@RequestParam("value") TestValue value) {}
     }
 }

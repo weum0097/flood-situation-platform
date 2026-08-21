@@ -2,7 +2,7 @@ spring:
   application:
     name: flood-situation-platform
   datasource:
-    url: jdbc:mysql://${FLOOD_DB_HOST:127.0.0.1}:${FLOOD_DB_PORT:3306}/${FLOOD_DB_NAME:flood_scenario_deduction}?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+    url: jdbc:mysql://${FLOOD_DB_HOST:127.0.0.1}:${FLOOD_DB_PORT:3306}/flood_scenario_deduction?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
     username: ${FLOOD_DB_USERNAME:root}
     password: ${FLOOD_DB_PASSWORD:}
     hikari:

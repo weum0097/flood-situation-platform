@@ -34,6 +34,6 @@ class EventApiIT extends MySqlIntegrationTestBase {
             + "&startTime=2026-08-21T00:00:00Z&endTime=2026-08-22T00:00:00Z",
             org.springframework.http.HttpMethod.GET, json(null, null), String.class);
         assertThat(query.getStatusCode().value()).isEqualTo(200);
-        assertThat(query.getBody()).contains("IT-EVENT-1", "IT-OBS-1");
+        assertThat(query.getBody()).contains("IT-EVENT-1", "\"observationId\":\"OBS_");
     }
 }

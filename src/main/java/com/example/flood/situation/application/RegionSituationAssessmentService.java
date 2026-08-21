@@ -78,6 +78,10 @@ public class RegionSituationAssessmentService {
             throw new ApiException(ErrorCode.VALIDATION_ERROR,
                 "assessmentTime and events are required");
         }
+        if (command.assessmentTime().getNano() % 1_000_000 != 0) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR,
+                "assessmentTime supports at most millisecond precision");
+        }
         ResolvedRegion region = regionResolver.resolve(command.region());
         List<ImportedAssessmentEvent> imported = importer.importForAssessment(region,
             command.assessmentTime(), command.events(), principal);

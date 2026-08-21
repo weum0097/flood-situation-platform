@@ -53,7 +53,7 @@ public class SituationController {
             new IdempotentOperation("POST:/openapi/v1/region-situation-assessments",
                 Map.of(), Map.of()), key, request, SituationAssessmentResponse.class, () -> {
                     SituationAssessmentResponse body = service.assess(toCommand(request), principal);
-                    return new OperationResult<>(201, body, "SITUATION_ASSESSMENT",
+                    return new OperationResult<>(201, body, "ASSESSMENT",
                         body.assessmentId());
                 });
         return ResponseEntity.status(result.httpStatus()).body(result.body());
