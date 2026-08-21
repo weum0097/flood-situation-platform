@@ -50,4 +50,16 @@
     ORDER BY a.assessment_time DESC, a.id DESC
     LIMIT #{query.size} OFFSET #{query.offset}
   </select>
+
+  <select id="findLatestRow" resultType="com.example.flood.situation.infrastructure.SavedSituationSnapshotRow">
+    SELECT id AS database_id, public_id, situation_level AS level,
+           affected_population, trapped_population, evacuated_population,
+           vulnerable_population, assessment_time
+    FROM region_situation_assessment
+    WHERE region_id = #{regionId}
+      AND assessment_time &gt;= #{start}
+      AND assessment_time &lt; #{end}
+    ORDER BY assessment_time DESC, id DESC
+    LIMIT 1
+  </select>
 </mapper>

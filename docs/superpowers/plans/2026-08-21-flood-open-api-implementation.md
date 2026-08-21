@@ -854,7 +854,7 @@ Run: `.\mvnw.cmd -Dtest='com.example.flood.situation.*Test' test`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit situation APIs**
+- [x] **Step 5: Commit situation APIs**
 
 ```bash
 git add src/main/java/com/example/flood/situation src/main/java/com/example/flood/event/application src/main/resources/mapper/situation src/test/java/com/example/flood/situation
@@ -990,7 +990,7 @@ public record SavedSituationSnapshot(
     Instant assessmentTime) {}
 ```
 
-- [ ] **Step 1: Write failing service and controller tests**
+- [x] **Step 1: Write failing service and controller tests**
 
 Cover direct input, optional reserve override range `[0,1]`, database range selecting `assessment_time DESC, id DESC`, no situation data, no active standard, source/assessment consistency, standard version snapshot, one header plus all details, and idempotent response replay.
 
@@ -1001,13 +1001,13 @@ assertThat(response.sourceType()).isEqualTo("DATABASE");
 assertThat(response.assessmentId()).isEqualTo("RSA_01");
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `.\mvnw.cmd -Dtest=MaterialDemandCalculationServiceTest,MaterialControllerTest test`
 
 Expected: FAIL because application/persistence APIs are absent.
 
-- [ ] **Step 3: Implement both calculation transactions**
+- [x] **Step 3: Implement both calculation transactions**
 
 Direct flow:
 
@@ -1029,7 +1029,7 @@ Database flow:
 
 Both flows execute inside the Task 5 idempotency transaction and generate `MDC_` public IDs.
 
-- [ ] **Step 4: Wire endpoints and run tests**
+- [x] **Step 4: Wire endpoints and run tests**
 
 Use operation codes:
 

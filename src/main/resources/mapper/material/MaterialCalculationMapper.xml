@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.flood.material.infrastructure.MaterialCalculationMapper">
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO material_demand_calculation
+      (public_id, region_id, assessment_id, source_type, situation_level,
+       supply_duration_hours, supply_days, affected_population, trapped_population,
+       evacuated_population, vulnerable_population, standard_set_id, standard_version,
+       input_snapshot, warnings, created_by_client_id)
+    VALUES (#{publicId}, #{regionId}, #{assessmentId}, #{sourceType}, #{situationLevel},
+       #{supplyDurationHours}, #{supplyDays}, #{affectedPopulation}, #{trappedPopulation},
+       #{evacuatedPopulation}, #{vulnerablePopulation}, #{standardSetId}, #{standardVersion},
+       CAST(#{inputSnapshot} AS JSON), CAST(#{warnings} AS JSON), #{createdByClientId})
+  </insert>
+  <insert id="insertItem">
+    INSERT INTO material_demand_item
+      (calculation_id, material_code, material_name, unit, population_basis,
+       basis_population, gross_demand, current_inventory, net_demand, formula_snapshot)
+    VALUES (#{calculationId}, #{materialCode}, #{materialName}, #{unit}, #{populationBasis},
+       #{basisPopulation}, #{grossDemand}, #{currentInventory}, #{netDemand},
+       CAST(#{formulaSnapshot} AS JSON))
+  </insert>
+</mapper>
