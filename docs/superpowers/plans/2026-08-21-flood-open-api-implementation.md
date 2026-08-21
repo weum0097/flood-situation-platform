@@ -576,7 +576,7 @@ git commit -m "feat: add operation scoped idempotency"
 - Consumes: `RegionResolver`, `ApiPrincipal`, `IdempotencyExecutor`, `PublicIdGenerator`.
 - Produces: `EventResponse EventApplicationService.create(CreateEventCommand, ApiPrincipal)` and `EventResponse update(String eventId, UpdateEventCommand, ApiPrincipal)`.
 
-- [ ] **Step 1: Write failing validation and controller tests**
+- [x] **Step 1: Write failing validation and controller tests**
 
 Cover `ONGOING` with non-null end, `ENDED` without end, end before start, observation before start, negative metrics, impact subgroup greater than affected population, duplicate `(sourceSystem, externalEventId)`, immutable identity fields absent from PUT, create 201, update 200, and idempotent replay.
 
@@ -587,13 +587,13 @@ assertThatThrownBy(() -> validator.validateTimes(
         ex -> assertThat(ex.errorCode()).isEqualTo(ErrorCode.VALIDATION_ERROR));
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `.\mvnw.cmd -Dtest=EventValidatorTest,EventCreateUpdateControllerTest test`
 
 Expected: FAIL because event contracts and service are absent.
 
-- [ ] **Step 3: Implement event validation and persistence**
+- [x] **Step 3: Implement event validation and persistence**
 
 Use these service signatures:
 
@@ -609,7 +609,7 @@ On create, resolve the region, reject existing source/external ID, generate `EVT
 
 On update, select by public ID `FOR UPDATE`, preserve `public_id`, external ID, source system, region, and creator, validate the five mutable fields, and update only event type/name/start/end/status. Historical assessment rows are untouched.
 
-- [ ] **Step 4: Wire the POST and PUT controllers through idempotency**
+- [x] **Step 4: Wire the POST and PUT controllers through idempotency**
 
 Use operation codes `POST:/openapi/v1/disaster-events` and `PUT:/openapi/v1/disaster-events/{eventId}`. Map request records to commands and call:
 
