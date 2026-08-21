@@ -1170,11 +1170,11 @@ git status --short
 
 Expected: all executable tests pass; `git diff --check` emits no whitespace error; `git status` still shows the unrelated pre-existing `D test` unless the user has handled it separately.
 
-- [ ] **Step 5: Run a local MySQL smoke test**
+- [x] **Step 5: Run a local MySQL smoke test**
 
-Status on 2026-08-21: blocked only for the local instance because `root` requires a
-password that was not provided. The equivalent end-to-end flow and reference audit run
-against an isolated MySQL 8.4 Testcontainers instance in Step 4.
+Completed on 2026-08-21 against local MySQL 8.4.9. The pre-existing 15-table schema
+was baselined at V2, migrated to V3, and loaded with local reference data. The service
+ran on port 18080 because port 8080 was briefly occupied during the first start attempt.
 
 With local environment variables set, start the application against `127.0.0.1:3306/flood_scenario_deduction`, call health, create one event, assess it, and calculate material demand. Confirm `api_audit_log`, assessment, and calculation rows exist and no full API Key appears in logs.
 
@@ -1204,3 +1204,10 @@ Do not stage the unrelated `test` deletion.
 - 2026-08-21 baseline: `scripts/mysql/tests/test-wrapper-preconditions.ps1` terminates before its assertions because `$ErrorActionPreference='Stop'` promotes the child PowerShell process's expected stderr to a terminating `NativeCommandError`. Both scripts under test independently return exit code 1 and the expected `FLOOD_DB_ADMIN_PASSWORD is required` message. The user approved recording this pre-existing fixture failure and continuing Java API implementation.
 - 2026-08-21 final review: fixed request-binding exceptions incorrectly returning 500, malformed-JSON requests skipping audit persistence, missing idempotency TTL scheduling, MySQL timestamp/numeric precision mismatch, and configurable schema-name drift. Added the common OpenAPI 404 response.
 - 2026-08-21 final verification: `clean test` passed 72 tests and `-Pintegration verify` passed 13 MySQL 8.4 integration tests with no failures. `git diff --check` reported no whitespace errors.
+- 2026-08-21 local MySQL smoke: health was `UP`; event creation, regional assessment,
+  and database-backed material calculation returned 201. The event idempotency replay
+  returned the identical body; the assessment level was `HIGH`; the material result
+  referenced that assessment and contained four items. Flyway was at V3, the schema had
+  zero foreign keys, four smoke audit rows had 32-byte request hashes, API keys stored
+  only prefix plus a 32-byte hash, and all 22 application-maintained references reported
+  `TOTAL_ORPHAN_REFERENCES = 0`.
