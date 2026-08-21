@@ -251,7 +251,7 @@ Do not stage the unrelated `test` deletion.
 - Consumes: UTC `Clock` from Task 1.
 - Produces: `ApiException(ErrorCode, String, List<ApiFieldError>)`, `PageResponse<T>`, `PublicIdGenerator.next(String prefix)`, and per-request `RequestContext(requestId, clientId, apiKeyId, clientCode, scopes, remoteIp)`.
 
-- [ ] **Step 1: Write failing error-envelope and request-ID tests**
+- [x] **Step 1: Write failing error-envelope and request-ID tests**
 
 Assert malformed JSON maps to `MALFORMED_REQUEST`, validation failures map to `VALIDATION_ERROR`, `new ApiException(ErrorCode.REGION_NOT_FOUND, "region not found", List.of())` maps to 404, and an absent request ID is generated and returned in both the header and holder.
 
@@ -262,13 +262,13 @@ assertThat(result.getResponse().getHeader("X-Request-Id"))
     .isEqualTo(requestIdFromBody);
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `.\mvnw.cmd -Dtest=GlobalExceptionHandlerTest,RequestIdFilterTest test`
 
 Expected: FAIL because the response envelope and filter do not exist.
 
-- [ ] **Step 3: Implement the exact common contracts**
+- [x] **Step 3: Implement the exact common contracts**
 
 Define all approved errors in `ErrorCode`, each with an HTTP status:
 
@@ -301,7 +301,7 @@ public record PageResponse<T>(
 
 `RequestIdFilter` accepts `[A-Za-z0-9._:-]{1,64}`; otherwise it generates `req_` plus a lowercase ULID-like sortable identifier. Clear the thread-local holder in `finally`.
 
-- [ ] **Step 4: Run common tests**
+- [x] **Step 4: Run common tests**
 
 Run: `.\mvnw.cmd -Dtest='com.example.flood.common.api.*Test' test`
 
