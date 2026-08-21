@@ -883,7 +883,7 @@ git commit -m "feat: add regional situation assessment apis"
 - Consumes: `SituationLevel`, region parent scope IDs, and business standard rows.
 - Produces: `List<MaterialDemandLine> MaterialDemandCalculator.calculate(MaterialDemandInput, List<MaterialStandardDefinition>)` and `SelectedMaterialStandards MaterialStandardService.select(ResolvedRegion, SituationLevel, Instant)`.
 
-- [ ] **Step 1: Write failing formula tests**
+- [x] **Step 1: Write failing formula tests**
 
 Cover 1/24/25/72-hour supply-day rounding, affected/trapped/evacuated/vulnerable bases, fixed basis not multiplying supply days, standard reserve ratio, request reserve override, minimum quantity, package rounding, inventory greater than gross yielding zero, duplicate inventory code, negative inventory, and unit mismatch.
 
@@ -893,13 +893,13 @@ assertThat(line.grossDemand()).isEqualByComparingTo("12000.0000");
 assertThat(line.netDemand()).isEqualByComparingTo("0.0000");
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `.\mvnw.cmd -Dtest=MaterialDemandCalculatorTest,MaterialStandardServiceTest test`
 
 Expected: FAIL because the calculator and selector are absent.
 
-- [ ] **Step 3: Implement exact BigDecimal formulas**
+- [x] **Step 3: Implement exact BigDecimal formulas**
 
 Use:
 
@@ -927,7 +927,7 @@ BigDecimal net = gross.subtract(currentInventory).max(BigDecimal.ZERO);
 
 Persist/output quantities at scale 4. Do not use `double` or `float`.
 
-- [ ] **Step 4: Implement region-to-global standard selection**
+- [x] **Step 4: Implement region-to-global standard selection**
 
 Select one ACTIVE standard set by calculation instant. For each material code, choose the first definition found in the region scope sequence `[district, city, province, 0]`; never combine two rows for one material. If the set is absent return `NO_ACTIVE_MATERIAL_STANDARD`; if it has no item for the requested level return `NO_MATERIAL_STANDARD_ITEM`.
 
