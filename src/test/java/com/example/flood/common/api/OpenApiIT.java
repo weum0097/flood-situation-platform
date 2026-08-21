@@ -29,6 +29,21 @@ class OpenApiIT extends MySqlIntegrationTestBase {
             .isEqualTo("#/components/schemas/ApiErrorResponse");
     }
 
+    @Test
+    void publishesOnlyResolvableLocalReferences() throws Exception {
+        var response = rest.getForEntity("/v3/api-docs", String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        JsonNode document = objectMapper.readTree(response.getBody());
+
+        var unresolvedReferences = document.findValuesAsText("$ref").stream()
+            .filter(reference -> reference.startsWith("#/"))
+            .filter(reference -> document.at(reference.substring(1)).isMissingNode())
+            .distinct()
+            .toList();
+
+        assertThat(unresolvedReferences).isEmpty();
+    }
+
     private static long operationCount(JsonNode paths) {
         return StreamSupport.stream(paths.spliterator(), false)
             .flatMap(path -> StreamSupport.stream(path.spliterator(), false))

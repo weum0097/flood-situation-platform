@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:mysql://${FLOOD_DB_HOST:127.0.0.1}:${FLOOD_DB_PORT:3306}/flood_scenario_deduction?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
     username: ${FLOOD_DB_USERNAME:root}
-    password: ${FLOOD_DB_PASSWORD:}
+    password: ${FLOOD_DB_PASSWORD:root}
     hikari:
       connection-init-sql: SET time_zone = '+00:00'
   flyway:

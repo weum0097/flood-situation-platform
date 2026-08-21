@@ -34,7 +34,7 @@ public class OpenApiConfiguration {
     OpenApiCustomizer commonApiContractCustomizer() {
         return openApi -> {
             Components components = openApi.getComponents();
-            ModelConverters.getInstance().read(ApiErrorResponse.class)
+            ModelConverters.getInstance().readAll(ApiErrorResponse.class)
                 .forEach(components::addSchemas);
             components.addParameters("XRequestId", new Parameter().in("header")
                 .name("X-Request-Id").required(false)

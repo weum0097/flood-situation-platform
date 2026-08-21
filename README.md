@@ -33,16 +33,16 @@ $env:FLOOD_BOOTSTRAP_API_KEY = "flood_live_localdev1.0123456789abcdefghijklmnopq
 
 启动后访问：
 
-- 健康检查：`http://localhost:8080/actuator/health`
-- Swagger UI：`http://localhost:8080/swagger-ui.html`
-- OpenAPI JSON：`http://localhost:8080/v3/api-docs`
+- 健康检查：`http://localhost:18080/actuator/health`
+- Swagger UI：`http://localhost:18080/swagger-ui.html`
+- OpenAPI JSON：`http://localhost:18080/v3/api-docs`
 
 ## 调用示例
 
 以下命令适用于 Bash/Git Bash。写接口必须同时携带 `X-API-Key` 与 `Idempotency-Key`；查询接口只需 API Key。将返回的 `eventId` 保存到 `EVENT_ID`。
 
 ```bash
-BASE_URL=http://localhost:8080
+BASE_URL=http://localhost:18080
 API_KEY='flood_live_localdev1.0123456789abcdefghijklmnopqrstuvwxyz'
 EVENT_ID='EVT_replace_with_created_id'
 ```
