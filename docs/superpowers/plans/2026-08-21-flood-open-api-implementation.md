@@ -333,7 +333,7 @@ git commit -m "feat: add common api contract and request tracing"
 - Consumes: `ApiException` and `ErrorCode` from Task 2.
 - Produces: `ResolvedRegion RegionResolver.resolve(RegionSelector)` and `List<Long> RegionResolver.specificToGlobalScopeIds(ResolvedRegion)` where the list ends with `0L` for global standards.
 
-- [ ] **Step 1: Write failing selector tests**
+- [x] **Step 1: Write failing selector tests**
 
 Cover ID-only, name-only, matching ID+name, mismatched selectors, duplicate names, inactive regions, and a district-to-city-to-province-to-global chain. Include a parent cycle fixture and assert `INTERNAL_ERROR` rather than looping.
 
@@ -343,13 +343,13 @@ assertThatThrownBy(() -> resolver.resolve(new RegionSelector("320111", "Other"))
         ex -> assertThat(ex.errorCode()).isEqualTo(ErrorCode.REGION_SELECTOR_MISMATCH));
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `.\mvnw.cmd -Dtest=RegionResolverTest test`
 
 Expected: FAIL because `RegionResolver` is missing.
 
-- [ ] **Step 3: Implement lookup and deterministic resolution**
+- [x] **Step 3: Implement lookup and deterministic resolution**
 
 Use this port:
 
@@ -363,7 +363,7 @@ public interface RegionLookup {
 
 Normalize names with Unicode NFKC and trimmed internal whitespace; do not remove administrative suffixes. Treat API `regionId` as `region.region_code`, never as the database numeric ID. Resolve parent IDs iteratively with a visited-ID set and a maximum depth of 16.
 
-- [ ] **Step 4: Run region and architecture tests**
+- [x] **Step 4: Run region and architecture tests**
 
 Run: `.\mvnw.cmd -Dtest=RegionResolverTest,ModuleBoundaryTest test`
 
