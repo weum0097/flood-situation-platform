@@ -6,7 +6,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest(
     classes = FloodApplication.class,
     properties = {
-        "spring.flyway.enabled=false",
+    "spring.flyway.enabled=false",
+    "flood.persistence.enabled=false",
         "flood.security.bootstrap.enabled=false",
         "spring.autoconfigure.exclude="
             + "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,"

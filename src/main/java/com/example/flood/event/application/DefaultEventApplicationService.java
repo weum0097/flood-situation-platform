@@ -18,10 +18,12 @@ import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@ConditionalOnProperty(name = "flood.persistence.enabled", havingValue = "true", matchIfMissing = true)
 public class DefaultEventApplicationService implements EventApplicationService {
     private final DisasterEventMapper eventMapper;
     private final EventObservationMapper observationMapper;

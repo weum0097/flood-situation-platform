@@ -6,8 +6,10 @@ import com.example.flood.region.domain.ResolvedRegion;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @Repository
+@ConditionalOnProperty(name = "flood.persistence.enabled", havingValue = "true", matchIfMissing = true)
 public class MybatisRegionLookup implements RegionLookup {
 
     private final RegionMapper mapper;

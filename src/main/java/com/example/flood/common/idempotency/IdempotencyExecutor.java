@@ -1,17 +1,19 @@
 package com.example.flood.common.idempotency;
 
 import com.example.flood.common.api.ApiException;
+import com.example.flood.common.api.ClientIdentity;
 import com.example.flood.common.api.ErrorCode;
-import com.example.flood.security.application.ApiPrincipal;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.security.MessageDigest;
 import java.time.Clock;
 import java.util.function.Supplier;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
+@ConditionalOnProperty(name = "flood.persistence.enabled", havingValue = "true", matchIfMissing = true)
 public class IdempotencyExecutor {
     private final IdempotencyRecordMapper mapper;
     private final CanonicalRequestHasher hasher;
@@ -31,7 +33,7 @@ public class IdempotencyExecutor {
         this.properties = properties;
     }
 
-    public <T> IdempotentResult<T> execute(ApiPrincipal principal, IdempotentOperation operation,
+    public <T> IdempotentResult<T> execute(ClientIdentity principal, IdempotentOperation operation,
         String key, Object fingerprintInput, Class<T> responseType,
         Supplier<OperationResult<T>> operationSupplier) {
         validateKey(key);
@@ -40,7 +42,7 @@ public class IdempotencyExecutor {
             principal, operation, key, requestHash, responseType, operationSupplier));
     }
 
-    private <T> IdempotentResult<T> executeInTransaction(ApiPrincipal principal,
+    private <T> IdempotentResult<T> executeInTransaction(ClientIdentity principal,
         IdempotentOperation operation, String key, byte[] requestHash, Class<T> responseType,
         Supplier<OperationResult<T>> supplier) {
         try {

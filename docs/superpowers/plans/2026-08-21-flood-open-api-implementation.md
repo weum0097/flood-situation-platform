@@ -220,7 +220,7 @@ Run: `.\mvnw.cmd test`
 
 Expected: PASS for context and architecture tests.
 
-- [ ] **Step 5: Commit the bootstrap**
+- [x] **Step 5: Commit the bootstrap**
 
 ```bash
 git add pom.xml .mvn mvnw mvnw.cmd src/main src/test sql/mysql/V3__scope_idempotency_by_operation.sql sql/mysql-local/R__local_reference_data.sql
@@ -307,7 +307,7 @@ Run: `.\mvnw.cmd -Dtest='com.example.flood.common.api.*Test' test`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit common HTTP support**
+- [x] **Step 5: Commit common HTTP support**
 
 ```bash
 git add src/main/java/com/example/flood/common src/test/java/com/example/flood/common
@@ -369,7 +369,7 @@ Run: `.\mvnw.cmd -Dtest=RegionResolverTest,ModuleBoundaryTest test`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit region resolution**
+- [x] **Step 5: Commit region resolution**
 
 ```bash
 git add src/main/java/com/example/flood/region src/test/java/com/example/flood/region
@@ -454,7 +454,7 @@ Run: `.\mvnw.cmd -Dtest='com.example.flood.security.*Test' test`
 
 Expected: PASS and captured logs contain no complete API Key.
 
-- [ ] **Step 5: Commit security**
+- [x] **Step 5: Commit security**
 
 ```bash
 git add src/main/java/com/example/flood/security src/test/java/com/example/flood/security src/main/resources/application*.yml
@@ -537,7 +537,7 @@ Run: `.\mvnw.cmd -Dtest='com.example.flood.common.idempotency.*Test' test`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit idempotency support**
+- [x] **Step 5: Commit idempotency support**
 
 ```bash
 git add src/main/java/com/example/flood/common/idempotency src/test/java/com/example/flood/common/idempotency sql/mysql/V3__scope_idempotency_by_operation.sql
@@ -632,7 +632,7 @@ Run: `.\mvnw.cmd -Dtest=EventValidatorTest,EventCreateUpdateControllerTest test`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit event create/update**
+- [x] **Step 5: Commit event create/update**
 
 ```bash
 git add src/main/java/com/example/flood/event src/test/java/com/example/flood/event
@@ -770,7 +770,7 @@ Run: `.\mvnw.cmd -Dtest=SituationRuleEngineTest test`
 
 Expected: PASS without loading Spring.
 
-- [ ] **Step 5: Commit the rule engine**
+- [x] **Step 5: Commit the rule engine**
 
 ```bash
 git add src/main/java/com/example/flood/situation/domain src/test/java/com/example/flood/situation/domain
@@ -935,7 +935,7 @@ Run: `.\mvnw.cmd -Dtest=MaterialDemandCalculatorTest,MaterialStandardServiceTest
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit material domain logic**
+- [x] **Step 5: Commit material domain logic**
 
 ```bash
 git add src/main/java/com/example/flood/material/domain src/main/java/com/example/flood/material/application src/test/java/com/example/flood/material
