@@ -22,3 +22,9 @@ Thumbs.db
 
 # Database
 *.sql.bak
+
+# Local database credentials
+.env
+.env.*
+!.env.example
+*.mylogin.cnf
