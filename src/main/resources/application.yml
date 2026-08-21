@@ -30,6 +30,8 @@ server:
     include-message: never
 
 flood:
+  idempotency:
+    ttl: 24h
   security:
     api-key-pepper: ${FLOOD_API_KEY_PEPPER:local-development-pepper-change-me}
     bootstrap-key-ttl: 365d

@@ -482,7 +482,7 @@ git commit -m "feat: add api key security and rate limiting"
 - Consumes: authenticated `ApiPrincipal`, V3 `operation_code`, Jackson `ObjectMapper`, `TransactionTemplate`, and UTC `Clock`.
 - Produces: `<T> IdempotentResult<T> IdempotencyExecutor.execute(ApiPrincipal, IdempotentOperation, String key, Object requestFingerprintInput, Class<T>, Supplier<OperationResult<T>>)`.
 
-- [ ] **Step 1: Write failing canonicalization and decision tests**
+- [x] **Step 1: Write failing canonicalization and decision tests**
 
 Verify reordered JSON object keys and numerically equivalent decimal forms hash identically, changed path variables hash differently, same operation/key/body replays stored response, different body raises `IDEMPOTENCY_CONFLICT`, and the same key works for different `operationCode` values.
 
@@ -494,13 +494,13 @@ var update = new IdempotentOperation(
     Map.of("eventId", "EVT-1"), Map.of());
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `.\mvnw.cmd -Dtest=CanonicalRequestHasherTest,IdempotencyExecutorTest test`
 
 Expected: FAIL because the executor is missing.
 
-- [ ] **Step 3: Implement deterministic hashing and transactional execution**
+- [x] **Step 3: Implement deterministic hashing and transactional execution**
 
 Use these records:
 
@@ -531,7 +531,7 @@ Inside one `TransactionTemplate`:
 
 Delete expired completed rows in batches of 500; never delete unexpired pending rows.
 
-- [ ] **Step 4: Run idempotency tests**
+- [x] **Step 4: Run idempotency tests**
 
 Run: `.\mvnw.cmd -Dtest='com.example.flood.common.idempotency.*Test' test`
 
