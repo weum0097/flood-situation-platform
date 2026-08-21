@@ -662,7 +662,7 @@ git commit -m "feat: add event create and update apis"
 - Consumes: Event persistence from Task 6 and `PageResponse<T>`.
 - Produces: `ObservationResponse appendObservation(String eventId, AppendObservationCommand, ApiPrincipal)` and `PageResponse<EventSummaryResponse> search(EventQuery)`.
 
-- [ ] **Step 1: Write failing append and query tests**
+- [x] **Step 1: Write failing append and query tests**
 
 Cover event not found, observation earlier than event start, same unique key/same body replay, same unique key/different body conflict, interval overlap, status filter, latest observation inside the query interval, no observation returning null, and stable ordering by `start_time DESC, id DESC`.
 
@@ -673,13 +673,13 @@ e.start_time < #{endTimeUtc}
 AND (e.end_time IS NULL OR e.end_time >= #{startTimeUtc})
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `.\mvnw.cmd -Dtest=ObservationConflictTest,EventQueryServiceTest,EventObservationQueryControllerTest test`
 
 Expected: FAIL because append and query use cases are missing.
 
-- [ ] **Step 3: Implement observation conflict semantics**
+- [x] **Step 3: Implement observation conflict semantics**
 
 Serialize the normalized observation fields to a canonical comparison object. If `(event_id, external_observation_id)` or `(event_id, observed_at)` exists:
 
@@ -688,7 +688,7 @@ Serialize the normalized observation fields to a canonical comparison object. If
 
 The outer `IdempotencyExecutor` still protects the HTTP request; observation natural-key semantics protect imports that use another idempotency key.
 
-- [ ] **Step 4: Implement the paginated query and controller mappings**
+- [x] **Step 4: Implement the paginated query and controller mappings**
 
 The observation endpoint uses operation code `POST:/openapi/v1/disaster-events/{eventId}/observations`. Require exactly one resolved region plus `startTime`, `endTime`, `page >= 0`, and `1 <= size <= 100` for the query endpoint. Convert offset times to UTC. Use one count query and one page query; fetch each event's latest in-range observation with a window function or a `MAX(observed_at)` join, avoiding N+1 queries.
 

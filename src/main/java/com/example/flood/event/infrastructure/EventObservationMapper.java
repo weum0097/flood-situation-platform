@@ -4,9 +4,22 @@ import com.example.flood.event.domain.EventObservation;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import java.time.Instant;
+import java.util.Optional;
 
 @Mapper
 public interface EventObservationMapper {
+    Optional<EventObservationDatabaseRow> findNaturalKeyRow(
+        @Param("eventId") long eventId,
+        @Param("externalObservationId") String externalObservationId,
+        @Param("observedAt") Instant observedAt);
+
+    default Optional<EventObservationRow> findByNaturalKey(long eventId,
+        String externalObservationId, Instant observedAt) {
+        return findNaturalKeyRow(eventId, externalObservationId, observedAt)
+            .map(EventObservationDatabaseRow::toRow);
+    }
+
     @Insert("""
         INSERT INTO disaster_event_observation
           (public_id, event_id, external_observation_id, observed_at, rainfall_24h_mm,

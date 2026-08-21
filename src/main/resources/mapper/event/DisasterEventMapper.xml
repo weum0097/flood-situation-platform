@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.flood.event.infrastructure.DisasterEventMapper">
+  <sql id="eventOverlap">
+    e.region_id = #{regionId}
+    AND e.start_time &lt; #{query.endTime}
+    AND (e.end_time IS NULL OR e.end_time &gt;= #{query.startTime})
+    <if test="query.status != null">
+      AND e.status = #{query.status}
+    </if>
+  </sql>
+
+  <select id="countForQuery" resultType="long">
+    SELECT COUNT(*) FROM disaster_event e
+    WHERE <include refid="eventOverlap"/>
+  </select>
+
+  <select id="findPageForQuery"
+      resultType="com.example.flood.event.infrastructure.EventQueryRow">
+    SELECT e.public_id AS event_id, e.external_event_id, e.source_system,
+      r.region_code, r.region_name, e.event_type, e.event_name,
+      e.start_time, e.end_time, e.status,
+      o.public_id AS observation_id, o.observed_at, o.rainfall_24h_mm,
+      o.water_level_over_warning_m, o.max_water_depth_m, o.affected_area_km2,
+      o.affected_population, o.trapped_population, o.evacuated_population,
+      o.vulnerable_population, o.injured_population, o.missing_population,
+      o.death_population, o.damaged_households, o.collapsed_houses,
+      o.road_interruptions, o.critical_facilities_affected, o.power_outage_households
+    FROM disaster_event e
+    JOIN region r ON r.id = e.region_id
+    LEFT JOIN (
+      SELECT ranked.* FROM (
+        SELECT source.*, ROW_NUMBER() OVER (
+          PARTITION BY source.event_id ORDER BY source.observed_at DESC, source.id DESC
+        ) AS row_number_in_event
+        FROM disaster_event_observation source
+        WHERE source.observed_at &gt;= #{query.startTime}
+          AND source.observed_at &lt; #{query.endTime}
+      ) ranked WHERE ranked.row_number_in_event = 1
+    ) o ON o.event_id = e.id
+    WHERE <include refid="eventOverlap"/>
+    ORDER BY e.start_time DESC, e.id DESC
+    LIMIT #{query.size} OFFSET #{query.offset}
+  </select>
+</mapper>

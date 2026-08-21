@@ -4,12 +4,17 @@ import com.example.flood.common.api.ApiException;
 import com.example.flood.common.api.ErrorCode;
 import com.example.flood.common.api.PublicIdGenerator;
 import com.example.flood.event.api.EventResponse;
+import com.example.flood.event.api.HazardRequest;
+import com.example.flood.event.api.ImpactRequest;
+import com.example.flood.event.api.ObservationResponse;
 import com.example.flood.event.domain.EventStatus;
+import com.example.flood.event.domain.EventObservation;
 import com.example.flood.event.domain.EventType;
 import com.example.flood.event.domain.EventValidator;
 import com.example.flood.event.infrastructure.DisasterEventMapper;
 import com.example.flood.event.infrastructure.DisasterEventRow;
 import com.example.flood.event.infrastructure.EventObservationMapper;
+import com.example.flood.event.infrastructure.EventObservationRow;
 import com.example.flood.region.application.RegionResolver;
 import com.example.flood.region.application.RegionSelector;
 import com.example.flood.region.domain.ResolvedRegion;
@@ -17,6 +22,7 @@ import com.example.flood.security.application.ApiPrincipal;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.math.BigDecimal;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -78,6 +84,74 @@ public class DefaultEventApplicationService implements EventApplicationService {
             new RegionSelector(existing.regionCode(), existing.regionName()), command.eventType(),
             command.eventName(), utc(command.startTime()), utc(command.endTime()), command.status(),
             null, utc(existing.createdAt()), now);
+    }
+
+    @Override @Transactional
+    public ObservationResponse appendObservation(String eventId, AppendObservationCommand command,
+        ApiPrincipal principal) {
+        DisasterEventRow event = eventMapper.findByPublicIdForUpdate(eventId)
+            .orElseThrow(() -> new ApiException(ErrorCode.EVENT_NOT_FOUND, "Event was not found"));
+        EventObservation candidate = command.observation();
+        validator.validateObservation(event.startTime(), candidate);
+        var existing = observationMapper.findByNaturalKey(
+            event.id(), candidate.externalObservationId(), candidate.observedAt());
+        if (existing.isPresent()) {
+            if (!equivalent(existing.get().observation(), candidate)) {
+                throw new ApiException(ErrorCode.OBSERVATION_CONFLICT,
+                    "Observation natural key already exists with different data");
+            }
+            return observationResponse(existing.get().publicId(), existing.get().observation());
+        }
+        String observationId = ids.next("OBS_");
+        try {
+            observationMapper.insertObservation(event.id(), observationId, candidate);
+        } catch (DuplicateKeyException duplicate) {
+            EventObservationRow concurrent = observationMapper.findByNaturalKey(
+                event.id(), candidate.externalObservationId(), candidate.observedAt())
+                .orElseThrow(() -> duplicate);
+            if (!equivalent(concurrent.observation(), candidate)) {
+                throw new ApiException(ErrorCode.OBSERVATION_CONFLICT,
+                    "Observation natural key already exists with different data");
+            }
+            return observationResponse(concurrent.publicId(), concurrent.observation());
+        }
+        return observationResponse(observationId, candidate);
+    }
+
+    private static ObservationResponse observationResponse(String publicId, EventObservation o) {
+        return new ObservationResponse(publicId, utc(o.observedAt()),
+            new HazardRequest(o.rainfall24hMm(), o.waterLevelOverWarningM(),
+                o.maxWaterDepthM(), o.affectedAreaKm2()),
+            new ImpactRequest(o.affectedPopulation(), o.trappedPopulation(),
+                o.evacuatedPopulation(), o.vulnerablePopulation(), o.injuredPopulation(),
+                o.missingPopulation(), o.deathPopulation(), o.damagedHouseholds(),
+                o.collapsedHouses(), o.roadInterruptions(), o.criticalFacilitiesAffected(),
+                o.powerOutageHouseholds()));
+    }
+
+    private static boolean equivalent(EventObservation left, EventObservation right) {
+        return java.util.Objects.equals(left.externalObservationId(), right.externalObservationId())
+            && left.observedAt().equals(right.observedAt())
+            && decimals(left.rainfall24hMm(), right.rainfall24hMm())
+            && decimals(left.waterLevelOverWarningM(), right.waterLevelOverWarningM())
+            && decimals(left.maxWaterDepthM(), right.maxWaterDepthM())
+            && decimals(left.affectedAreaKm2(), right.affectedAreaKm2())
+            && left.affectedPopulation() == right.affectedPopulation()
+            && left.trappedPopulation() == right.trappedPopulation()
+            && left.evacuatedPopulation() == right.evacuatedPopulation()
+            && left.vulnerablePopulation() == right.vulnerablePopulation()
+            && left.injuredPopulation() == right.injuredPopulation()
+            && left.missingPopulation() == right.missingPopulation()
+            && left.deathPopulation() == right.deathPopulation()
+            && left.damagedHouseholds() == right.damagedHouseholds()
+            && left.collapsedHouses() == right.collapsedHouses()
+            && left.roadInterruptions() == right.roadInterruptions()
+            && left.criticalFacilitiesAffected() == right.criticalFacilitiesAffected()
+            && left.powerOutageHouseholds() == right.powerOutageHouseholds();
+    }
+
+    private static boolean decimals(BigDecimal left, BigDecimal right) {
+        return left == null ? right == null : right != null && left.compareTo(right) == 0;
     }
 
     private static OffsetDateTime utc(java.time.Instant value) {

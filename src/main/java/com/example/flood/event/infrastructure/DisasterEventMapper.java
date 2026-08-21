@@ -2,6 +2,8 @@ package com.example.flood.event.infrastructure;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.List;
+import com.example.flood.event.application.EventQuery;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -10,6 +12,11 @@ import org.apache.ibatis.annotations.Update;
 
 @Mapper
 public interface DisasterEventMapper {
+    long countForQuery(@Param("regionId") long regionId, @Param("query") EventQuery query);
+
+    List<EventQueryRow> findPageForQuery(
+        @Param("regionId") long regionId, @Param("query") EventQuery query);
+
     @Select("SELECT COUNT(*) FROM disaster_event WHERE source_system=#{source} AND external_event_id=#{external}")
     int countByExternal(@Param("source") String source, @Param("external") String external);
 

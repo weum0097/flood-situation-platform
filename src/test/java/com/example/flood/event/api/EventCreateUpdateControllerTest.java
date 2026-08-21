@@ -10,6 +10,7 @@ import com.example.flood.common.idempotency.IdempotencyExecutor;
 import com.example.flood.common.idempotency.IdempotentResult;
 import com.example.flood.common.idempotency.OperationResult;
 import com.example.flood.event.application.EventApplicationService;
+import com.example.flood.event.application.EventQueryService;
 import com.example.flood.event.domain.EventStatus;
 import com.example.flood.event.domain.EventType;
 import com.example.flood.region.application.RegionSelector;
@@ -36,7 +37,7 @@ class EventCreateUpdateControllerTest {
             OperationResult<EventResponse> operation = supplier.get();
             return new IdempotentResult<>(operation.httpStatus(), operation.body(), false);
         }).when(idempotency).execute(any(), any(), any(), any(), any(), any());
-        controller = new EventController(service, idempotency);
+        controller = new EventController(service, mock(EventQueryService.class), idempotency);
     }
 
     @Test
