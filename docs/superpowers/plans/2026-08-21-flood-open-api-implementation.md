@@ -403,7 +403,7 @@ git commit -m "feat: add region selector resolution"
 - Consumes: `RequestContextHolder`, UTC `Clock`, and security tables from V1/V2.
 - Produces: authenticated `ApiPrincipal(long clientId, long apiKeyId, String clientCode, Set<String> scopes)`, `ApiKeyAuthenticationService.authenticate(String rawKey, String remoteIp)`, and per-client token-bucket enforcement.
 
-- [ ] **Step 1: Write failing hash, expiry, scope, and refill tests**
+- [x] **Step 1: Write failing hash, expiry, scope, and refill tests**
 
 Use a fixed pepper and clock. Verify HMAC-SHA256 output is 32 bytes, one-character key changes fail constant-time comparison, expired/revoked keys return `INVALID_API_KEY`, missing scope returns `INSUFFICIENT_SCOPE`, and a 60/minute bucket refills at one token per second.
 
@@ -414,13 +414,13 @@ assertThat(limiter.tryAcquire(10L, 2, Instant.parse("2026-08-21T00:00:00Z"))).is
 assertThat(limiter.tryAcquire(10L, 2, Instant.parse("2026-08-21T00:00:30Z"))).isTrue();
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `.\mvnw.cmd -Dtest=ApiKeyHasherTest,ClientRateLimiterTest,SecurityConfigurationTest test`
 
 Expected: FAIL because security components are absent.
 
-- [ ] **Step 3: Implement authentication and bootstrap**
+- [x] **Step 3: Implement authentication and bootstrap**
 
 Parse keys using:
 
@@ -446,7 +446,7 @@ POST /openapi/v1/material-demand-calculations/from-region-data  -> material:calc
 
 Bootstrap from `FLOOD_BOOTSTRAP_CLIENT_CODE`, `FLOOD_BOOTSTRAP_API_KEY`, and `FLOOD_API_KEY_PEPPER`. Upsert the client and key prefix, store only the digest, set all five scopes, and calculate expiry from `flood.security.bootstrap-key-ttl` defaulting to 365 days. In `prod`, fail startup if bootstrap or pepper configuration is absent.
 
-- [ ] **Step 4: Implement security filter behavior and run tests**
+- [x] **Step 4: Implement security filter behavior and run tests**
 
 Permit `/actuator/health`, `/v3/api-docs/**`, and `/swagger-ui/**`; protect `/openapi/v1/**`; deny other unmatched application routes. Return the common JSON error envelope for 401, 403, and 429.
 

@@ -28,3 +28,12 @@ management:
 server:
   error:
     include-message: never
+
+flood:
+  security:
+    api-key-pepper: ${FLOOD_API_KEY_PEPPER:local-development-pepper-change-me}
+    bootstrap-key-ttl: 365d
+    bootstrap:
+      enabled: ${FLOOD_BOOTSTRAP_ENABLED:false}
+      client-code: ${FLOOD_BOOTSTRAP_CLIENT_CODE:}
+      api-key: ${FLOOD_BOOTSTRAP_API_KEY:}
