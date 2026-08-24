@@ -3,6 +3,7 @@ package com.example.flood.event.application;
 import com.example.flood.common.api.ApiException;
 import com.example.flood.common.api.ErrorCode;
 import com.example.flood.common.api.PublicIdGenerator;
+import com.example.flood.common.time.BeijingTime;
 import com.example.flood.event.api.EventResponse;
 import com.example.flood.event.api.HazardRequest;
 import com.example.flood.event.api.ImpactRequest;
@@ -21,7 +22,6 @@ import com.example.flood.region.domain.ResolvedRegion;
 import com.example.flood.security.application.ApiPrincipal;
 import java.time.Clock;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,10 +68,10 @@ public class DefaultEventApplicationService implements EventApplicationService, 
         } catch (DuplicateKeyException exception) {
             throw conflict();
         }
-        OffsetDateTime now = OffsetDateTime.now(clock);
+        OffsetDateTime now = BeijingTime.now(clock);
         return new EventResponse(eventId, command.externalEventId(), command.sourceSystem(),
             new RegionSelector(region.regionCode(), region.regionName()), command.eventType(),
-            command.eventName(), utc(command.startTime()), utc(command.endTime()), command.status(),
+            command.eventName(), beijing(command.startTime()), beijing(command.endTime()), command.status(),
             observationId, now, now);
     }
 
@@ -82,11 +82,11 @@ public class DefaultEventApplicationService implements EventApplicationService, 
             .orElseThrow(() -> new ApiException(ErrorCode.EVENT_NOT_FOUND, "Event was not found"));
         eventMapper.updateMutable(existing.id(), command.eventType().name(), command.eventName(),
             command.startTime(), command.endTime(), command.status().name());
-        OffsetDateTime now = OffsetDateTime.now(clock);
+        OffsetDateTime now = BeijingTime.now(clock);
         return new EventResponse(existing.publicId(), existing.externalEventId(), existing.sourceSystem(),
             new RegionSelector(existing.regionCode(), existing.regionName()), command.eventType(),
-            command.eventName(), utc(command.startTime()), utc(command.endTime()), command.status(),
-            null, utc(existing.createdAt()), now);
+            command.eventName(), beijing(command.startTime()), beijing(command.endTime()), command.status(),
+            null, beijing(existing.createdAt()), now);
     }
 
     @Override @Transactional
@@ -211,7 +211,7 @@ public class DefaultEventApplicationService implements EventApplicationService, 
     }
 
     private static ObservationResponse observationResponse(String publicId, EventObservation o) {
-        return new ObservationResponse(publicId, utc(o.observedAt()),
+        return new ObservationResponse(publicId, beijing(o.observedAt()),
             new HazardRequest(o.rainfall24hMm(), o.waterLevelOverWarningM(),
                 o.maxWaterDepthM(), o.affectedAreaKm2()),
             new ImpactRequest(o.affectedPopulation(), o.trappedPopulation(),
@@ -246,8 +246,8 @@ public class DefaultEventApplicationService implements EventApplicationService, 
         return left == null ? right == null : right != null && left.compareTo(right) == 0;
     }
 
-    private static OffsetDateTime utc(java.time.Instant value) {
-        return value == null ? null : value.atOffset(ZoneOffset.UTC);
+    private static OffsetDateTime beijing(java.time.Instant value) {
+        return BeijingTime.from(value);
     }
     private static ApiException conflict() {
         return new ApiException(ErrorCode.EVENT_CONFLICT, "An event with this source identity already exists");

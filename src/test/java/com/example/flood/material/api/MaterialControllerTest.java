@@ -31,7 +31,7 @@ class MaterialControllerTest {
             return new IdempotentResult<>(result.httpStatus(), result.body(), false);
         }).when(idempotency).execute(any(), any(), any(), any(), any(), any());
         MaterialController controller = new MaterialController(service, idempotency);
-        OffsetDateTime now = OffsetDateTime.parse("2026-08-21T04:00:00Z");
+        OffsetDateTime now = OffsetDateTime.parse("2026-08-21T12:00:00+08:00");
         ApiPrincipal principal = new ApiPrincipal(1, 2, "client", Set.of("material:calculate"));
         MaterialCalculationResponse response = new MaterialCalculationResponse("MDC_1", "DIRECT",
             null, new RegionSelector("320111", "浦口区"), SituationLevel.HIGH,

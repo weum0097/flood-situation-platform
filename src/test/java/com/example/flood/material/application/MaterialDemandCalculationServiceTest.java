@@ -81,6 +81,7 @@ class MaterialDemandCalculationServiceTest {
         assertThat(response.supplyDays()).isEqualTo(2);
         assertThat(response.standardVersion()).isEqualTo("material-v1");
         assertThat(response.items()).hasSize(1);
+        assertThat(response.createdAt().getOffset()).isEqualTo(ZoneOffset.ofHours(8));
         ArgumentCaptor<MaterialCalculationRow> header =
             ArgumentCaptor.forClass(MaterialCalculationRow.class);
         verify(mapper).insert(header.capture());

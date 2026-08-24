@@ -4,6 +4,7 @@ import com.example.flood.common.api.ApiException;
 import com.example.flood.common.api.ErrorCode;
 import com.example.flood.common.api.PageResponse;
 import com.example.flood.common.api.PublicIdGenerator;
+import com.example.flood.common.time.BeijingTime;
 import com.example.flood.event.application.EventAssessmentImportPort;
 import com.example.flood.event.application.ImportedAssessmentEvent;
 import com.example.flood.event.domain.EventObservation;
@@ -32,7 +33,6 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -101,7 +101,7 @@ public class RegionSituationAssessmentService {
         List<SituationAssessmentResponse.Warning> warnings = evaluated.size() > 1
             && hasPopulation(impact) ? List.of(POPULATION_WARNING) : List.of();
         String assessmentId = ids.next("RSA_");
-        OffsetDateTime createdAt = OffsetDateTime.now(clock).withOffsetSameInstant(ZoneOffset.UTC);
+        OffsetDateTime createdAt = BeijingTime.now(clock);
         SituationAssessmentRow row = new SituationAssessmentRow(assessmentId, region.id(),
             command.assessmentTime(), regionResult.level().name(), evaluated.size(),
             impact.affectedPopulation(), impact.trappedPopulation(), impact.evacuatedPopulation(),
@@ -121,7 +121,7 @@ public class RegionSituationAssessmentService {
         }
         return new SituationAssessmentResponse(assessmentId,
             new RegionSelector(region.regionCode(), region.regionName()),
-            utc(command.assessmentTime()), regionResult.level(), evaluated.size(), impact,
+            beijing(command.assessmentTime()), regionResult.level(), evaluated.size(), impact,
             eventResults, importSummary(imported), ruleSet.version(), warnings, createdAt);
     }
 
@@ -137,7 +137,7 @@ public class RegionSituationAssessmentService {
 
     private SituationAssessmentSummaryResponse toSummary(SituationAssessmentSummaryRow row) {
         return new SituationAssessmentSummaryResponse(row.publicId(),
-            new RegionSelector(row.regionCode(), row.regionName()), utc(row.assessmentTime()),
+            new RegionSelector(row.regionCode(), row.regionName()), beijing(row.assessmentTime()),
             SituationLevel.valueOf(row.situationLevel()), row.activeEventCount(),
             new SituationAssessmentResponse.AggregateImpact(row.affectedPopulation(),
                 row.trappedPopulation(), row.evacuatedPopulation(), row.vulnerablePopulation()),
@@ -224,7 +224,7 @@ public class RegionSituationAssessmentService {
         }
     }
 
-    private static OffsetDateTime utc(Instant value) { return value.atOffset(ZoneOffset.UTC); }
+    private static OffsetDateTime beijing(Instant value) { return BeijingTime.from(value); }
 
     private record EvaluatedEvent(ImportedAssessmentEvent event, EventSituationResult result,
         BigDecimal durationHours) {}

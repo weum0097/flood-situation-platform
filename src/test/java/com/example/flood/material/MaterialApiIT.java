@@ -28,13 +28,13 @@ class MaterialApiIT extends MySqlIntegrationTestBase {
 
     @Test
     void regionDataCalculationUsesLatestAssessmentInsideRequestedRange() throws Exception {
-        String earlierId = createAssessment("IT-MAT-EARLY", "2026-08-21T06:00:00Z",
+        String earlierId = createAssessment("IT-MAT-EARLY", "2026-08-21T14:00:00+08:00",
             "it-material-assessment-early", 40);
-        String latestId = createAssessment("IT-MAT-LATEST", "2026-08-21T08:00:00Z",
+        String latestId = createAssessment("IT-MAT-LATEST", "2026-08-21T16:00:00+08:00",
             "it-material-assessment-latest", 90);
         String body = """
             {"region":{"regionId":"320111"},"assessmentTimeRange":{
-             "startTime":"2026-08-21T05:00:00Z","endTime":"2026-08-21T09:00:00Z"},
+             "startTime":"2026-08-21T13:00:00+08:00","endTime":"2026-08-21T17:00:00+08:00"},
              "supplyDurationHours":24,"currentInventory":[]}
             """;
 
@@ -54,7 +54,7 @@ class MaterialApiIT extends MySqlIntegrationTestBase {
             {"region":{"regionId":"320111"},"assessmentTime":"%s",
              "events":[{"externalEventId":"%s","sourceSystem":"it-material-latest",
              "eventType":"RIVER_FLOOD","eventName":"Material source assessment",
-             "startTime":"2026-08-21T00:00:00Z","status":"ONGOING",
+             "startTime":"2026-08-21T08:00:00+08:00","status":"ONGOING",
              "observation":{"externalObservationId":"%s-OBS","observedAt":"%s",
              "hazard":{"maxWaterDepthM":0.5},"impact":{"affectedPopulation":%d,
              "trappedPopulation":1,"evacuatedPopulation":2,"vulnerablePopulation":1}}}]}

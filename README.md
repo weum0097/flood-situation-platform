@@ -19,7 +19,11 @@
 
 所有写入数据库的时间最多支持毫秒精度；物资保障时长最多保留 3 位小数，库存数量最多保留 4 位小数。超过精度的请求会返回校验错误，不会静默舍入。
 
-本地 profile 会执行 Flyway V1–V3，并额外加载 `sql/mysql-local/R__local_reference_data.sql`：V1 创建 15 张业务表，V2 删除全部 22 个外键，V3 将幂等键唯一范围调整为“客户端 + 操作 + Key”。已有生产库应按正常 Flyway 顺序迁移，不要启用本地示例数据。
+所有 API 请求时间、响应时间和应用日志统一使用北京时间 `Asia/Shanghai`（UTC+08:00）。请求时间必须显式携带 `+08:00`；使用 `Z`、其他偏移或不带偏移的请求会被拒绝。通过校验后，系统将时间转换为 UTC `Instant`，MySQL 与内部领域模型继续按 UTC 保存和计算，避免历史数据发生 8 小时偏移。
+
+本地 profile 会执行 Flyway V1–V4，并额外加载 `sql/mysql-local/R__local_reference_data.sql`：V1 创建 15 张业务表，V2 删除全部 22 个外键，V3 将幂等键唯一范围调整为“客户端 + 操作 + Key”，V4 导入全国省级、地级、县级行政区划。已有生产库应按正常 Flyway 顺序迁移，不要启用本地示例业务规则和物资标准。
+
+V4 行政区划以中国·国家地名信息库 2025 年版为来源，使用项目现有的 6 位 `region_code`，共包含 34 条省级、333 条地级和 2847 条县级记录。官方接口未返回台湾省，因此仅按现行 GB/T 2260 补充省级代码 `710000`，不编造其下级区划。以后更新区划数据时应新增 Flyway 迁移，不要修改已经执行过的 V4 文件。
 
 ```powershell
 $env:FLOOD_DB_USERNAME = "root"
@@ -50,37 +54,37 @@ EVENT_ID='EVT_replace_with_created_id'
 1. 新增事件
 
 ```bash
-curl -i -X POST "$BASE_URL/openapi/v1/disaster-events" -H "X-API-Key: $API_KEY" -H 'Idempotency-Key: demo-event-create' -H 'Content-Type: application/json' -d '{"externalEventId":"EXT-DEMO-001","sourceSystem":"demo","region":{"regionId":"320111"},"eventType":"RIVER_FLOOD","eventName":"示例洪水","startTime":"2026-08-21T00:00:00Z","status":"ONGOING","initialObservation":{"externalObservationId":"OBS-DEMO-001","observedAt":"2026-08-21T01:00:00Z","hazard":{"rainfall24hMm":180,"maxWaterDepthM":1.2},"impact":{"affectedPopulation":1000,"trappedPopulation":50,"evacuatedPopulation":200,"vulnerablePopulation":80}}}'
+curl -i -X POST "$BASE_URL/openapi/v1/disaster-events" -H "X-API-Key: $API_KEY" -H 'Idempotency-Key: demo-event-create' -H 'Content-Type: application/json' -d '{"externalEventId":"EXT-DEMO-001","sourceSystem":"demo","region":{"regionId":"320111"},"eventType":"RIVER_FLOOD","eventName":"示例洪水","startTime":"2026-08-21T08:00:00+08:00","status":"ONGOING","initialObservation":{"externalObservationId":"OBS-DEMO-001","observedAt":"2026-08-21T09:00:00+08:00","hazard":{"rainfall24hMm":180,"maxWaterDepthM":1.2},"impact":{"affectedPopulation":1000,"trappedPopulation":50,"evacuatedPopulation":200,"vulnerablePopulation":80}}}'
 ```
 
 2. 更新事件
 
 ```bash
-curl -i -X PUT "$BASE_URL/openapi/v1/disaster-events/$EVENT_ID" -H "X-API-Key: $API_KEY" -H 'Idempotency-Key: demo-event-update' -H 'Content-Type: application/json' -d '{"eventType":"RIVER_FLOOD","eventName":"示例洪水（更新）","startTime":"2026-08-21T00:00:00Z","status":"ONGOING"}'
+curl -i -X PUT "$BASE_URL/openapi/v1/disaster-events/$EVENT_ID" -H "X-API-Key: $API_KEY" -H 'Idempotency-Key: demo-event-update' -H 'Content-Type: application/json' -d '{"eventType":"RIVER_FLOOD","eventName":"示例洪水（更新）","startTime":"2026-08-21T08:00:00+08:00","status":"ONGOING"}'
 ```
 
 3. 追加观测
 
 ```bash
-curl -i -X POST "$BASE_URL/openapi/v1/disaster-events/$EVENT_ID/observations" -H "X-API-Key: $API_KEY" -H 'Idempotency-Key: demo-observation' -H 'Content-Type: application/json' -d '{"externalObservationId":"OBS-DEMO-002","observedAt":"2026-08-21T02:00:00Z","hazard":{"rainfall24hMm":205,"maxWaterDepthM":1.5},"impact":{"affectedPopulation":1500,"trappedPopulation":100,"evacuatedPopulation":300,"vulnerablePopulation":120}}'
+curl -i -X POST "$BASE_URL/openapi/v1/disaster-events/$EVENT_ID/observations" -H "X-API-Key: $API_KEY" -H 'Idempotency-Key: demo-observation' -H 'Content-Type: application/json' -d '{"externalObservationId":"OBS-DEMO-002","observedAt":"2026-08-21T10:00:00+08:00","hazard":{"rainfall24hMm":205,"maxWaterDepthM":1.5},"impact":{"affectedPopulation":1500,"trappedPopulation":100,"evacuatedPopulation":300,"vulnerablePopulation":120}}'
 ```
 
 4. 按区域和时间查询事件
 
 ```bash
-curl -G "$BASE_URL/openapi/v1/disaster-events" -H "X-API-Key: $API_KEY" --data-urlencode 'regionId=320111' --data-urlencode 'startTime=2026-08-21T00:00:00Z' --data-urlencode 'endTime=2026-08-22T00:00:00Z'
+curl -G "$BASE_URL/openapi/v1/disaster-events" -H "X-API-Key: $API_KEY" --data-urlencode 'regionId=320111' --data-urlencode 'startTime=2026-08-21T08:00:00+08:00' --data-urlencode 'endTime=2026-08-22T08:00:00+08:00'
 ```
 
 5. 导入事件并计算区域态势
 
 ```bash
-curl -i -X POST "$BASE_URL/openapi/v1/region-situation-assessments" -H "X-API-Key: $API_KEY" -H 'Idempotency-Key: demo-assessment' -H 'Content-Type: application/json' -d '{"region":{"regionId":"320111"},"assessmentTime":"2026-08-21T04:00:00Z","events":[{"externalEventId":"EXT-ASSESS-001","sourceSystem":"demo-assess","eventType":"RIVER_FLOOD","eventName":"态势示例事件","startTime":"2026-08-21T00:00:00Z","status":"ONGOING","observation":{"externalObservationId":"OBS-ASSESS-001","observedAt":"2026-08-21T04:00:00Z","hazard":{"maxWaterDepthM":1.5},"impact":{"affectedPopulation":1500,"trappedPopulation":100,"evacuatedPopulation":300,"vulnerablePopulation":120}}}]}'
+curl -i -X POST "$BASE_URL/openapi/v1/region-situation-assessments" -H "X-API-Key: $API_KEY" -H 'Idempotency-Key: demo-assessment' -H 'Content-Type: application/json' -d '{"region":{"regionId":"320111"},"assessmentTime":"2026-08-21T12:00:00+08:00","events":[{"externalEventId":"EXT-ASSESS-001","sourceSystem":"demo-assess","eventType":"RIVER_FLOOD","eventName":"态势示例事件","startTime":"2026-08-21T08:00:00+08:00","status":"ONGOING","observation":{"externalObservationId":"OBS-ASSESS-001","observedAt":"2026-08-21T12:00:00+08:00","hazard":{"maxWaterDepthM":1.5},"impact":{"affectedPopulation":1500,"trappedPopulation":100,"evacuatedPopulation":300,"vulnerablePopulation":120}}}]}'
 ```
 
 6. 按区域和时间查询已保存态势
 
 ```bash
-curl -G "$BASE_URL/openapi/v1/region-situation-assessments" -H "X-API-Key: $API_KEY" --data-urlencode 'regionId=320111' --data-urlencode 'startTime=2026-08-21T00:00:00Z' --data-urlencode 'endTime=2026-08-22T00:00:00Z'
+curl -G "$BASE_URL/openapi/v1/region-situation-assessments" -H "X-API-Key: $API_KEY" --data-urlencode 'regionId=320111' --data-urlencode 'startTime=2026-08-21T08:00:00+08:00' --data-urlencode 'endTime=2026-08-22T08:00:00+08:00'
 ```
 
 7. 直接计算物资需求
@@ -92,7 +96,7 @@ curl -i -X POST "$BASE_URL/openapi/v1/material-demand-calculations" -H "X-API-Ke
 8. 使用区间内最新的已保存态势计算物资需求
 
 ```bash
-curl -i -X POST "$BASE_URL/openapi/v1/material-demand-calculations/from-region-data" -H "X-API-Key: $API_KEY" -H 'Idempotency-Key: demo-material-region' -H 'Content-Type: application/json' -d '{"region":{"regionId":"320111"},"assessmentTimeRange":{"startTime":"2026-08-21T00:00:00Z","endTime":"2026-08-22T00:00:00Z"},"supplyDurationHours":24,"currentInventory":[]}'
+curl -i -X POST "$BASE_URL/openapi/v1/material-demand-calculations/from-region-data" -H "X-API-Key: $API_KEY" -H 'Idempotency-Key: demo-material-region' -H 'Content-Type: application/json' -d '{"region":{"regionId":"320111"},"assessmentTimeRange":{"startTime":"2026-08-21T08:00:00+08:00","endTime":"2026-08-22T08:00:00+08:00"},"supplyDurationHours":24,"currentInventory":[]}'
 ```
 
 同一客户端、同一操作、同一 `Idempotency-Key` 与相同请求体会返回已保存结果；Key 相同但请求不同会返回 `409 IDEMPOTENCY_CONFLICT`。每个响应都会带 `X-Request-Id`，也可由调用方传入该头用于链路追踪。

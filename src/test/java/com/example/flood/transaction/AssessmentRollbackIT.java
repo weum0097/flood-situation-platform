@@ -11,12 +11,12 @@ class AssessmentRollbackIT extends MySqlIntegrationTestBase {
         String externalEventId = "IT-ROLLBACK-EVENT";
         String key = "it-assessment-rollback";
         String body = """
-            {"region":{"regionId":"320111"},"assessmentTime":"2010-08-21T04:00:00Z",
+            {"region":{"regionId":"320111"},"assessmentTime":"2010-08-21T12:00:00+08:00",
              "events":[{"externalEventId":"IT-ROLLBACK-EVENT","sourceSystem":"it-rollback",
              "eventType":"RIVER_FLOOD","eventName":"Must roll back",
-             "startTime":"2010-08-21T00:00:00Z","status":"ONGOING",
+             "startTime":"2010-08-21T08:00:00+08:00","status":"ONGOING",
              "observation":{"externalObservationId":"IT-ROLLBACK-OBS",
-             "observedAt":"2010-08-21T04:00:00Z","hazard":{"maxWaterDepthM":0.5},
+             "observedAt":"2010-08-21T12:00:00+08:00","hazard":{"maxWaterDepthM":0.5},
              "impact":{"affectedPopulation":10,"trappedPopulation":1,
              "evacuatedPopulation":2,"vulnerablePopulation":1,"injuredPopulation":0,
              "missingPopulation":0,"deathPopulation":0,"damagedHouseholds":0,

@@ -25,7 +25,7 @@ class EventCreateUpdateControllerTest {
     private EventApplicationService service;
     private EventController controller;
     private final ApiPrincipal principal = new ApiPrincipal(1, 2, "client", Set.of("event:write"));
-    private final OffsetDateTime now = OffsetDateTime.parse("2026-08-21T00:00:00Z");
+    private final OffsetDateTime now = OffsetDateTime.parse("2026-08-21T08:00:00+08:00");
 
     @BeforeEach
     @SuppressWarnings("unchecked")

@@ -19,6 +19,13 @@ class LocalProfileConfigurationTest {
                 .run()) {
             assertThat(context.getEnvironment().getProperty("server.port", Integer.class))
                     .isEqualTo(18080);
+            assertThat(context.getEnvironment().getProperty("spring.jackson.time-zone"))
+                    .isEqualTo("Asia/Shanghai");
+            assertThat(context.getEnvironment().getProperty(
+                    "spring.jackson.deserialization.adjust-dates-to-context-time-zone",
+                    Boolean.class)).isFalse();
+            assertThat(context.getEnvironment().getProperty("logging.pattern.dateformat"))
+                    .contains("Asia/Shanghai");
         }
     }
 

@@ -3,6 +3,7 @@ package com.example.flood.material.application;
 import com.example.flood.common.api.ApiException;
 import com.example.flood.common.api.ErrorCode;
 import com.example.flood.common.api.PublicIdGenerator;
+import com.example.flood.common.time.BeijingTime;
 import com.example.flood.material.api.MaterialCalculationResponse;
 import com.example.flood.material.api.MaterialDemandItemResponse;
 import com.example.flood.material.domain.MaterialDemandCalculator;
@@ -26,7 +27,6 @@ import java.math.RoundingMode;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -111,7 +111,7 @@ public class MaterialDemandCalculationService {
                 line.basisPopulation(), line.grossDemand(), line.currentInventory(),
                 line.netDemand(), json(new FormulaSnapshot(definition, reserveRatio, supplyDays))));
         }
-        OffsetDateTime createdAt = calculationTime.atOffset(ZoneOffset.UTC);
+        OffsetDateTime createdAt = BeijingTime.from(calculationTime);
         return new MaterialCalculationResponse(calculationId, sourceType, assessmentPublicId,
             new RegionSelector(region.regionCode(), region.regionName()), level, storedDuration,
             supplyDays, lines.stream().map(MaterialDemandCalculationService::responseItem).toList(),

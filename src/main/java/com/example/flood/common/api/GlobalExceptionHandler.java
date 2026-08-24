@@ -1,8 +1,8 @@
 package com.example.flood.common.api;
 
+import com.example.flood.common.time.BeijingTime;
 import jakarta.validation.ConstraintViolationException;
 import java.time.Clock;
-import java.time.OffsetDateTime;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,7 +82,7 @@ public class GlobalExceptionHandler {
             errorCode.name(),
             message,
             details,
-            OffsetDateTime.now(clock));
+            BeijingTime.now(clock));
         return ResponseEntity.status(errorCode.status()).contentType(PROBLEM_JSON).body(body);
     }
 }

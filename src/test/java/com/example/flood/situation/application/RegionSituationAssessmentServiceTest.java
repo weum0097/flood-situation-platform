@@ -99,6 +99,8 @@ class RegionSituationAssessmentServiceTest {
         assertThat(response.importSummary().updatedEvents()).isEqualTo(1);
         assertThat(response.importSummary().createdObservations()).isEqualTo(1);
         assertThat(response.importSummary().duplicatedObservations()).isEqualTo(1);
+        assertThat(response.assessmentTime().getOffset()).isEqualTo(ZoneOffset.ofHours(8));
+        assertThat(response.createdAt().getOffset()).isEqualTo(ZoneOffset.ofHours(8));
         assertThat(response.warnings()).extracting(warning -> warning.code())
             .containsExactly("POSSIBLE_POPULATION_OVERLAP");
         assertThat(response.eventResults()).hasSize(2)

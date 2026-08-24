@@ -1,5 +1,6 @@
 package com.example.flood.event.infrastructure;
 
+import com.example.flood.common.time.BeijingTime;
 import com.example.flood.event.api.EventSummaryResponse;
 import com.example.flood.event.api.HazardRequest;
 import com.example.flood.event.api.ImpactRequest;
@@ -9,7 +10,6 @@ import com.example.flood.event.application.EventQueryDataSource;
 import com.example.flood.event.domain.EventStatus;
 import com.example.flood.event.domain.EventType;
 import com.example.flood.region.application.RegionSelector;
-import java.time.ZoneOffset;
 import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
@@ -28,7 +28,7 @@ public class MybatisEventQueryDataSource implements EventQueryDataSource {
     }
     private EventSummaryResponse response(EventQueryRow row) {
         ObservationResponse observation = row.observationId() == null ? null : new ObservationResponse(
-            row.observationId(), row.observedAt().atOffset(ZoneOffset.UTC),
+            row.observationId(), BeijingTime.from(row.observedAt()),
             new HazardRequest(row.rainfall24hMm(), row.waterLevelOverWarningM(),
                 row.maxWaterDepthM(), row.affectedAreaKm2()),
             new ImpactRequest(value(row.affectedPopulation()), value(row.trappedPopulation()),
@@ -39,8 +39,7 @@ public class MybatisEventQueryDataSource implements EventQueryDataSource {
                 intValue(row.criticalFacilitiesAffected()), value(row.powerOutageHouseholds())));
         return new EventSummaryResponse(row.eventId(), row.externalEventId(), row.sourceSystem(),
             new RegionSelector(row.regionCode(), row.regionName()), EventType.valueOf(row.eventType()),
-            row.eventName(), row.startTime().atOffset(ZoneOffset.UTC),
-            row.endTime() == null ? null : row.endTime().atOffset(ZoneOffset.UTC),
+            row.eventName(), BeijingTime.from(row.startTime()), BeijingTime.from(row.endTime()),
             EventStatus.valueOf(row.status()), observation);
     }
     private static long value(Long value) { return value == null ? 0 : value; }

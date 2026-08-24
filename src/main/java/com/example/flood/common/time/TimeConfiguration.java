@@ -9,6 +9,6 @@ public class TimeConfiguration {
 
     @Bean
     Clock clock() {
-        return Clock.systemUTC();
+        return Clock.system(BeijingTime.ZONE_ID);
     }
 }

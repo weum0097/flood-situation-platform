@@ -14,12 +14,12 @@ class SituationApiIT extends MySqlIntegrationTestBase {
     @Test
     void importsEventPersistsAssessmentAndAudit() {
         String body = """
-            {"region":{"regionId":"320111"},"assessmentTime":"2026-08-21T04:00:00Z",
+            {"region":{"regionId":"320111"},"assessmentTime":"2026-08-21T12:00:00+08:00",
              "events":[{"externalEventId":"IT-ASSESS-EVENT","sourceSystem":"it-assess",
              "eventType":"RIVER_FLOOD","eventName":"Assessment flood",
-             "startTime":"2026-08-21T00:00:00Z","status":"ONGOING",
+             "startTime":"2026-08-21T08:00:00+08:00","status":"ONGOING",
              "observation":{"externalObservationId":"IT-ASSESS-OBS",
-             "observedAt":"2026-08-21T04:00:00Z","hazard":{"maxWaterDepthM":1.5},
+             "observedAt":"2026-08-21T12:00:00+08:00","hazard":{"maxWaterDepthM":1.5},
              "impact":{"affectedPopulation":100,"trappedPopulation":10,
              "evacuatedPopulation":20,"vulnerablePopulation":5,"injuredPopulation":0,
              "missingPopulation":0,"deathPopulation":0,"damagedHouseholds":0,
@@ -39,12 +39,12 @@ class SituationApiIT extends MySqlIntegrationTestBase {
     @Test
     void savedAssessmentSnapshotDoesNotChangeWithLaterEventAndRuleChanges() throws Exception {
         String body = """
-            {"region":{"regionId":"320111"},"assessmentTime":"2026-08-21T10:00:00Z",
+            {"region":{"regionId":"320111"},"assessmentTime":"2026-08-21T18:00:00+08:00",
              "events":[{"externalEventId":"IT-HISTORY-EVENT","sourceSystem":"it-history",
              "eventType":"RIVER_FLOOD","eventName":"Historical name",
-             "startTime":"2026-08-21T00:00:00Z","status":"ONGOING",
+             "startTime":"2026-08-21T08:00:00+08:00","status":"ONGOING",
              "observation":{"externalObservationId":"IT-HISTORY-OBS",
-             "observedAt":"2026-08-21T10:00:00Z","hazard":{"maxWaterDepthM":1.5},
+             "observedAt":"2026-08-21T18:00:00+08:00","hazard":{"maxWaterDepthM":1.5},
              "impact":{"affectedPopulation":120,"trappedPopulation":12,
              "evacuatedPopulation":24,"vulnerablePopulation":6}}}]}
             """;
@@ -68,7 +68,7 @@ class SituationApiIT extends MySqlIntegrationTestBase {
 
         String update = """
             {"eventType":"RIVER_FLOOD","eventName":"Changed after assessment",
-             "startTime":"2026-08-21T00:00:00Z","status":"ONGOING"}
+             "startTime":"2026-08-21T08:00:00+08:00","status":"ONGOING"}
             """;
         var updated = rest.exchange("/openapi/v1/disaster-events/" + eventId,
             org.springframework.http.HttpMethod.PUT,

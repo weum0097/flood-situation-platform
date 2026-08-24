@@ -4,12 +4,17 @@ import com.example.flood.common.idempotency.IdempotencyExecutor;
 import com.example.flood.common.idempotency.IdempotentOperation;
 import com.example.flood.common.idempotency.IdempotentResult;
 import com.example.flood.common.idempotency.OperationResult;
+import com.example.flood.common.time.BeijingTime;
 import com.example.flood.material.application.DirectMaterialCalculationCommand;
 import com.example.flood.material.application.MaterialDemandCalculationService;
 import com.example.flood.material.application.RegionDataMaterialCalculationCommand;
 import com.example.flood.material.domain.InventoryItem;
 import com.example.flood.material.domain.PopulationSnapshot;
 import com.example.flood.security.application.ApiPrincipal;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @ConditionalOnProperty(name = "flood.persistence.enabled", havingValue = "true", matchIfMissing = true)
 @RequestMapping("/openapi/v1/material-demand-calculations")
+@Tag(name = "物资需求", description = "依据业务方提供的物资标准计算救灾物资毛需求、库存抵扣和净需求")
 public class MaterialController {
     private final MaterialDemandCalculationService service;
     private final IdempotencyExecutor idempotency;
@@ -34,8 +40,13 @@ public class MaterialController {
     }
 
     @PostMapping
+    @Operation(summary = "按输入数据计算物资需求",
+        description = "直接使用区域、态势等级、保障时长、人口数据和可选库存计算物资需求。")
+    @ApiResponse(responseCode = "201", description = "物资需求计算并保存成功")
     ResponseEntity<MaterialCalculationResponse> calculateDirect(
         @Valid @RequestBody DirectMaterialCalculationRequest request,
+        @Parameter(description = "用于保证写请求幂等；不同请求内容必须使用不同值",
+            example = "swagger-material-direct-001")
         @RequestHeader("Idempotency-Key") String key,
         @AuthenticationPrincipal ApiPrincipal principal) {
         return execute("POST:/openapi/v1/material-demand-calculations", key, request, principal,
@@ -45,15 +56,22 @@ public class MaterialController {
     }
 
     @PostMapping("/from-region-data")
+    @Operation(summary = "按区域态势数据计算物资需求",
+        description = "根据区域和评估时间区间查找已保存的态势及受灾人口，再使用生效物资标准计算需求。")
+    @ApiResponse(responseCode = "201", description = "物资需求计算并保存成功")
     ResponseEntity<MaterialCalculationResponse> calculateFromRegionData(
         @Valid @RequestBody RegionDataMaterialCalculationRequest request,
+        @Parameter(description = "用于保证写请求幂等；不同请求内容必须使用不同值",
+            example = "swagger-material-region-001")
         @RequestHeader("Idempotency-Key") String key,
         @AuthenticationPrincipal ApiPrincipal principal) {
         return execute("POST:/openapi/v1/material-demand-calculations/from-region-data",
             key, request, principal, () -> service.calculateFromRegionData(
                 new RegionDataMaterialCalculationCommand(request.region(),
-                    request.assessmentTimeRange().startTime().toInstant(),
-                    request.assessmentTimeRange().endTime().toInstant(),
+                    BeijingTime.requestInstant(request.assessmentTimeRange().startTime(),
+                        "assessmentTimeRange.startTime"),
+                    BeijingTime.requestInstant(request.assessmentTimeRange().endTime(),
+                        "assessmentTimeRange.endTime"),
                     request.supplyDurationHours(), inventory(request.currentInventory())), principal));
     }
 

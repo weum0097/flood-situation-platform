@@ -32,7 +32,7 @@ class EventObservationQueryControllerTest {
         }).when(idempotency).execute(any(), any(), any(), any(), any(), any());
         EventController controller = new EventController(eventService, queryService, idempotency);
         ApiPrincipal principal = new ApiPrincipal(1, 2, "client", Set.of());
-        OffsetDateTime time = OffsetDateTime.parse("2026-08-21T01:00:00Z");
+        OffsetDateTime time = OffsetDateTime.parse("2026-08-21T09:00:00+08:00");
         EventObservationRequest request = new EventObservationRequest("external", time,
             new HazardRequest(null, null, null, null),
             new ImpactRequest(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));

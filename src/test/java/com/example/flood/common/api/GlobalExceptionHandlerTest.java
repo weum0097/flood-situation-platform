@@ -6,16 +6,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -28,7 +32,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 class GlobalExceptionHandlerTest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules()
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -39,6 +45,7 @@ class GlobalExceptionHandlerTest {
         GlobalExceptionHandler handler = new GlobalExceptionHandler(clock, idGenerator);
         mockMvc = MockMvcBuilders.standaloneSetup(new TestController())
             .setControllerAdvice(handler)
+            .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
             .addFilters(requestIdFilter)
             .build();
     }
@@ -86,6 +93,9 @@ class GlobalExceptionHandlerTest {
             result.getResponse().getContentAsString(), ApiErrorResponse.class);
         assertThat(response.errorCode()).isEqualTo("REGION_NOT_FOUND");
         assertThat(response.message()).isEqualTo("region not found");
+        JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
+        assertThat(OffsetDateTime.parse(body.get("timestamp").asText()).getOffset())
+            .isEqualTo(ZoneOffset.ofHours(8));
     }
 
     @Test

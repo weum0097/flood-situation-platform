@@ -12,8 +12,14 @@ spring:
     locations: classpath:sql/mysql
     validate-on-migrate: true
   jackson:
-    time-zone: UTC
+    time-zone: Asia/Shanghai
     property-naming-strategy: LOWER_CAMEL_CASE
+    deserialization:
+      adjust-dates-to-context-time-zone: false
+
+logging:
+  pattern:
+    dateformat: "yyyy-MM-dd'T'HH:mm:ss.SSSXXX,Asia/Shanghai"
 
 mybatis-plus:
   configuration:

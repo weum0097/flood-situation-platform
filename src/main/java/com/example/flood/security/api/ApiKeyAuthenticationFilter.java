@@ -4,6 +4,7 @@ import com.example.flood.common.api.ApiErrorResponse;
 import com.example.flood.common.api.ApiException;
 import com.example.flood.common.api.RequestContext;
 import com.example.flood.common.api.RequestContextHolder;
+import com.example.flood.common.time.BeijingTime;
 import com.example.flood.security.application.ApiKeyAuthenticationService;
 import com.example.flood.security.application.ApiPrincipal;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,7 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Clock;
-import java.time.OffsetDateTime;
 import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
@@ -71,7 +71,7 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
         ApiErrorResponse body = new ApiErrorResponse(
             RequestContextHolder.requireCurrent().requestId(), exception.errorCode().name(),
-            exception.getMessage(), List.of(), OffsetDateTime.now(clock));
+            exception.getMessage(), List.of(), BeijingTime.now(clock));
         objectMapper.writeValue(response.getOutputStream(), body);
     }
 }

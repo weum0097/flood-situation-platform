@@ -60,7 +60,7 @@ class IdempotencyConcurrencyIT extends MySqlIntegrationTestBase {
         String event = """
             {"externalEventId":"IT-IDEMP-OTHER-OP","sourceSystem":"it-idempotency",
              "region":{"regionId":"320111"},"eventType":"URBAN_WATERLOGGING",
-             "eventName":"Operation scoped key","startTime":"2026-08-21T00:00:00Z",
+             "eventName":"Operation scoped key","startTime":"2026-08-21T08:00:00+08:00",
              "status":"ONGOING"}
             """;
         String material = """
