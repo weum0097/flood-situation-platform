@@ -1,0 +1,8 @@
+spring:
+  flyway:
+    locations: classpath:sql/mysql,classpath:sql/mysql-local
+    baseline-on-migrate: true
+    baseline-version: 2
+
+server:
+  port: 18080

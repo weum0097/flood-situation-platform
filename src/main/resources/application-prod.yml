@@ -1,0 +1,8 @@
+spring:
+  flyway:
+    locations: classpath:sql/mysql
+    baseline-on-migrate: false
+
+flood:
+  security:
+    api-key-pepper: ${FLOOD_API_KEY_PEPPER}

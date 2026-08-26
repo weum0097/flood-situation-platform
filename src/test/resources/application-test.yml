@@ -1,0 +1,3 @@
+spring:
+  flyway:
+    locations: classpath:sql/mysql,classpath:sql/mysql-local

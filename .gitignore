@@ -7,8 +7,7 @@ target/
 *.iml
 .vscode/
 
-# Maven
-.mvn/
+# Maven Wrapper is version-controlled.
 
 # Logs
 *.log
@@ -22,3 +21,12 @@ Thumbs.db
 
 # Database
 *.sql.bak
+
+# Local database credentials
+.env
+.env.*
+!.env.example
+*.mylogin.cnf
+
+# Isolated feature worktrees
+.worktrees/

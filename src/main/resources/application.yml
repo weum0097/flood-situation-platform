@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: flood-situation-platform
+  datasource:
+    url: jdbc:mysql://${FLOOD_DB_HOST:127.0.0.1}:${FLOOD_DB_PORT:3306}/flood_scenario_deduction?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+    username: ${FLOOD_DB_USERNAME:root}
+    password: ${FLOOD_DB_PASSWORD:root}
+    hikari:
+      connection-init-sql: SET time_zone = '+00:00'
+  flyway:
+    enabled: true
+    locations: classpath:sql/mysql
+    validate-on-migrate: true
+  jackson:
+    time-zone: Asia/Shanghai
+    property-naming-strategy: LOWER_CAMEL_CASE
+    deserialization:
+      adjust-dates-to-context-time-zone: false
+
+logging:
+  pattern:
+    dateformat: "yyyy-MM-dd'T'HH:mm:ss.SSSXXX,Asia/Shanghai"
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+server:
+  error:
+    include-message: never
+
+flood:
+  idempotency:
+    ttl: 24h
+  security:
+    api-key-pepper: ${FLOOD_API_KEY_PEPPER:local-development-pepper-change-me}
+    bootstrap-key-ttl: 365d
+    bootstrap:
+      enabled: ${FLOOD_BOOTSTRAP_ENABLED:false}
+      client-code: ${FLOOD_BOOTSTRAP_CLIENT_CODE:}
+      api-key: ${FLOOD_BOOTSTRAP_API_KEY:}

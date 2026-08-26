@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.flood.event.infrastructure.EventObservationMapper">
+  <select id="findNaturalKeyRow"
+      resultType="com.example.flood.event.infrastructure.EventObservationDatabaseRow">
+    SELECT id, event_id, public_id, external_observation_id, observed_at,
+      rainfall_24h_mm, water_level_over_warning_m, max_water_depth_m,
+      affected_area_km2, affected_population, trapped_population,
+      evacuated_population, vulnerable_population, injured_population,
+      missing_population, death_population, damaged_households, collapsed_houses,
+      road_interruptions, critical_facilities_affected, power_outage_households
+    FROM disaster_event_observation
+    WHERE event_id = #{eventId}
+      AND ((#{externalObservationId} IS NOT NULL
+            AND external_observation_id = #{externalObservationId})
+        OR observed_at = #{observedAt})
+    ORDER BY id
+    LIMIT 1
+  </select>
+</mapper>
